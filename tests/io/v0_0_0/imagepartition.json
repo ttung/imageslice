@@ -1,0 +1,308 @@
+{
+    "version": "0.0.0",
+    "dimensions": [
+        "x",
+        "y",
+        "hyb",
+        "ch"
+    ],
+    "default_tile_shape": [
+        1044,
+        1390
+    ],
+    "shape": {
+        "hyb": 4,
+        "ch": 4
+    },
+    "default_tile_format": "TIFF",
+    "tiles": [
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 0,
+                "ch": 0
+            },
+            "file": "1_1st_FITC.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 0,
+                "ch": 1
+            },
+            "file": "1_1st_Cy3.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 0,
+                "ch": 2
+            },
+            "file": "1_1st_Cy3 5.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 0,
+                "ch": 3
+            },
+            "file": "1_1st_Cy5.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 1,
+                "ch": 0
+            },
+            "file": "1_2nd_FITC.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 1,
+                "ch": 1
+            },
+            "file": "1_2nd_Cy3.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 1,
+                "ch": 2
+            },
+            "file": "1_2nd_Cy3 5.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 1,
+                "ch": 3
+            },
+            "file": "1_2nd_Cy5.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 2,
+                "ch": 0
+            },
+            "file": "1_3rd_FITC.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 2,
+                "ch": 1
+            },
+            "file": "1_3rd_Cy3.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 2,
+                "ch": 2
+            },
+            "file": "1_3rd_Cy3 5.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 2,
+                "ch": 3
+            },
+            "file": "1_3rd_Cy5.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 3,
+                "ch": 0
+            },
+            "file": "1_4th_FITC.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 3,
+                "ch": 1
+            },
+            "file": "1_4th_Cy3.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 3,
+                "ch": 2
+            },
+            "file": "1_4th_Cy3 5.TIF",
+            "tile_format": "TIFF"
+        },
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "indices": {
+                "hyb": 3,
+                "ch": 3
+            },
+            "file": "1_4th_Cy5.TIF",
+            "tile_format": "TIFF"
+        }
+    ]
+}
