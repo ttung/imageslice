@@ -1,0 +1,16 @@
+language: python
+python:
+- 2.7
+- 3.4
+- 3.5
+- 3.6
+dist: trusty
+install:
+- pip install -r requirements-dev.txt
+- pip install -e .
+- pip freeze
+script:
+- set -eo pipefail
+- make test
+after_success:
+- bash <(curl -s https://codecov.io/bash)
