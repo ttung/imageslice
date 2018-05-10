@@ -34,10 +34,29 @@ def infer_backend(baseurl, allow_caching=True):
     return backend
 
 
+def resolve_path_or_url(path_or_url, allow_caching=True):
+    """
+    Given either a path (absolute or relative), or a URL, attempt to resolve it.  Returns a tuple consisting of:
+    a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of the object.
+    """
+    try:
+        return resolve_url(path_or_url, allow_caching=allow_caching)
+    except ValueError:
+        if os.path.isfile(path_or_url):
+            return resolve_url(
+                os.path.basename(path_or_url),
+                baseurl="file://{}".format(os.path.dirname(os.path.abspath(path_or_url))),
+                allow_caching=allow_caching,
+            )
+        raise
+
+
 def resolve_url(name_or_url, baseurl=None, allow_caching=True):
     """
     Given a string that can either be a name or a fully qualified url, return a tuple consisting of:
     a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of the object.
+
+    If the string is a name and not a fully qualified url, then baseurl must be set.
     """
     try:
         # assume it's a fully qualified url.

@@ -1,9 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import os
-import sys
-
 from slicedimage import Reader, Writer
+from slicedimage.io import resolve_path_or_url
 from ._base import CliCommand
 
 
@@ -19,16 +17,8 @@ class ChecksumCommand(CliCommand):
 
     @classmethod
     def run_command(cls, args):
-        try:
-            slicedimage = Reader.parse_doc(args.in_url, None)
-        except ValueError:
-            if os.path.isfile(args.in_url):
-                newurl = "file://{}".format(args.in_url)
-                sys.stderr.write(
-                    "WARNING: {} is not a url but is a file.  Attempting {}...\n".format(args.in_url, newurl))
-                slicedimage = Reader.parse_doc(newurl, None)
-            else:
-                raise
+        _, name, baseurl = resolve_path_or_url(args.in_url)
+        slicedimage = Reader.parse_doc(name, baseurl)
 
         Writer.write_to_path(
             slicedimage,
