@@ -66,3 +66,53 @@ class TestWrite(unittest.TestCase):
 
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())
                     self.assertIsNotNone(tiles[0].sha256)
+
+    def test_write_tocpartition(self):
+        image = slicedimage.ImagePartition(
+            ["x", "y", "ch", "hyb"],
+            {'ch': 2, 'hyb': 2},
+            (100, 100),
+        )
+
+        for hyb in range(2):
+            for ch in range(2):
+                tile = slicedimage.Tile(
+                    {
+                        'x': (0.0, 0.01),
+                        'y': (0.0, 0.01),
+                    },
+                    {
+                        'hyb': hyb,
+                        'ch': ch,
+                    },
+                )
+                tile.numpy_array = numpy.zeros((100, 100))
+                tile.numpy_array[hyb, ch] = 1
+                image.add_tile(tile)
+        toc = slicedimage.TocPartition()
+        toc.add_toc(image)
+
+        with TemporaryDirectory() as tempdir, tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as toc_file:
+            toc_doc = slicedimage.v0_0_0.Writer().generate_toc(toc, toc_file.name)
+            writer = codecs.getwriter("utf-8")
+            json.dump(toc_doc, writer(toc_file))
+            toc_file.flush()
+
+            basename = os.path.basename(toc_file.name)
+            baseurl = "file://{}".format(os.path.dirname(toc_file.name))
+
+            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+
+            for hyb in range(2):
+                for ch in range(2):
+                    tiles = [_tile
+                             for _tile in loaded.tiles(lambda tile:
+                                                       tile.indices['hyb'] == hyb and tile.indices['ch'] == ch)]
+
+                    self.assertEqual(len(tiles), 1)
+
+                    expected = numpy.zeros((100, 100))
+                    expected[hyb, ch] = 1
+
+                    self.assertEqual(tiles[0].numpy_array.all(), expected.all())
+                    self.assertIsNotNone(tiles[0].sha256)

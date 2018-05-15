@@ -102,12 +102,13 @@ class Writer(object):
     @staticmethod
     def default_toc_path_generator(toc_path):
         toc_basename = os.path.splitext(os.path.basename(toc_path))[0]
-        return tempfile.NamedTemporaryFile(
+        toc_path = tempfile.NamedTemporaryFile(
             suffix=".json",
             prefix="{}-".format(toc_basename),
             dir=os.path.dirname(toc_path),
             delete=False,
         )
+        return toc_path.name
 
     @staticmethod
     def default_tile_opener(toc_path, tile, ext):
@@ -194,14 +195,16 @@ class v0_0_0(object):
                 CommonPartitionKeys.EXTRAS: imagestack.extras,
             }
             if isinstance(imagestack, TocPartition):
+                json_doc[TocPartitionKeys.TOCS] = []
                 for toc in imagestack._tocs:
-                    tocpath = toc_path_generator(path, toc)
+                    tocpath = toc_path_generator(path)
                     Writer.write_to_path(
                         toc, tocpath,
                         toc_path_generator=toc_path_generator,
                         tile_opener=tile_opener,
-                        tile_Writer=tile_writer
+                        tile_writer=tile_writer
                     )
+                    json_doc[TocPartitionKeys.TOCS].append(os.path.basename(tocpath))
                 return json_doc
             elif isinstance(imagestack, ImagePartition):
                 json_doc[ImagePartitionKeys.DIMENSIONS] = tuple(imagestack.dimensions)
