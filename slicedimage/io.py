@@ -94,7 +94,7 @@ class Reader(object):
 class Writer(object):
     @staticmethod
     def write_to_path(imagestack, path, pretty=False, *args, **kwargs):
-        document = v0_0_0.Writer().generate_toc(imagestack, path, *args, **kwargs)
+        document = v0_0_0.Writer().generate_toc(imagestack, path, pretty, *args, **kwargs)
         indent = 4 if pretty else None
         with open(path, "w") as fh:
             json.dump(document, fh, indent=indent, sort_keys=pretty)
@@ -125,7 +125,7 @@ class Writer(object):
         tile.write(fh)
         return ImageFormat.NUMPY
 
-    def generate_toc(self, imagestack, path, *args, **kwargs):
+    def generate_toc(self, imagestack, path, pretty=False, *args, **kwargs):
         raise NotImplementedError()
 
 
@@ -187,6 +187,7 @@ class v0_0_0(object):
                 self,
                 imagestack,
                 path,
+                pretty=False,
                 toc_path_generator=Writer.default_toc_path_generator,
                 tile_opener=Writer.default_tile_opener,
                 tile_writer=Writer.default_tile_writer):
@@ -199,7 +200,7 @@ class v0_0_0(object):
                 for partition_name, partition in imagestack._partitions.items():
                     tocpath = toc_path_generator(path)
                     Writer.write_to_path(
-                        partition, tocpath,
+                        partition, tocpath, pretty,
                         toc_path_generator=toc_path_generator,
                         tile_opener=tile_opener,
                         tile_writer=tile_writer
