@@ -100,12 +100,12 @@ class Writer(object):
             json.dump(document, fh, indent=indent, sort_keys=pretty)
 
     @staticmethod
-    def default_toc_path_generator(toc_path):
-        toc_basename = os.path.splitext(os.path.basename(toc_path))[0]
+    def default_toc_path_generator(parent_toc_path, toc_name):
+        toc_basename = os.path.splitext(os.path.basename(parent_toc_path))[0]
         toc_path = tempfile.NamedTemporaryFile(
             suffix=".json",
             prefix="{}-".format(toc_basename),
-            dir=os.path.dirname(toc_path),
+            dir=os.path.dirname(parent_toc_path),
             delete=False,
         )
         return toc_path.name
@@ -197,7 +197,7 @@ class v0_0_0(object):
             if isinstance(imagestack, TocPartition):
                 json_doc[TocPartitionKeys.TOCS] = dict()
                 for partition_name, partition in imagestack._partitions.items():
-                    tocpath = toc_path_generator(path)
+                    tocpath = toc_path_generator(path, partition_name)
                     Writer.write_to_path(
                         partition, tocpath,
                         toc_path_generator=toc_path_generator,
