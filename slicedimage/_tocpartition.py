@@ -6,25 +6,31 @@ from ._imagepartition import ImagePartition
 class TocPartition(object):
     def __init__(self, extras=None):
         self.extras = extras
-        self._tocs = list()
+        self._partitions = dict()
 
     def validate(self):
         pass
 
-    def add_toc(self, toc):
-        self._tocs.append(toc)
+    def add_partition(self, name, partition):
+        self._partitions[name] = partition
 
-    def all_tocs(self):
-        """Return all TOCs referenced by this TOC, directly or indirectly."""
-        for toc in self._tocs:
-            if isinstance(toc, TocPartition):
-                for subtoc in toc.all_tocs():
-                    yield subtoc
-            elif isinstance(toc, ImagePartition):
-                yield toc
+    def all_image_partitions(self):
+        """Return all image partitions in this TOC partition, directly or indirectly, as (name, partition) tuples."""
+        for name, partition in self._partitions.items():
+            if isinstance(partition, TocPartition):
+                for descendant_name, descendant_toc in partition.all_image_partitions():
+                    yield descendant_name, descendant_toc
+            elif isinstance(partition, ImagePartition):
+                yield name, partition
+
+    def find_image_partition(self, name):
+        for partition_name, image_partition in self.all_image_partitions():
+            if name == partition_name:
+                return image_partition
+        return None
 
     def tiles(self, filter_fn=lambda _: True):
         result = []
-        for toc in self.all_tocs():
-            result.extend(toc.tiles(filter_fn))
+        for partion_name, image_partition in self.all_image_partitions():
+            result.extend(image_partition.tiles(filter_fn))
         return result

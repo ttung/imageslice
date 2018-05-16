@@ -137,10 +137,10 @@ class v0_0_0(object):
             if TocPartitionKeys.TOCS in json_doc:
                 # this is a TocPartition
                 result = TocPartition(json_doc.get(CommonPartitionKeys.EXTRAS, None))
-                for name_or_url in json_doc[TocPartitionKeys.TOCS]:
-                    toc = Reader.parse_doc(name_or_url, baseurl)
-                    toc._name_or_url = name_or_url
-                    result.add_toc(toc)
+                for name, relative_path_or_url in json_doc[TocPartitionKeys.TOCS].items():
+                    toc = Reader.parse_doc(relative_path_or_url, baseurl)
+                    toc._name_or_url = relative_path_or_url
+                    result.add_partition(name, toc)
             elif ImagePartitionKeys.TILES in json_doc:
                 imageformat = json_doc.get(ImagePartitionKeys.DEFAULT_TILE_FORMAT, None)
                 if imageformat is not None:
@@ -154,8 +154,8 @@ class v0_0_0(object):
                 )
 
                 for tile_doc in json_doc[ImagePartitionKeys.TILES]:
-                    name_or_url = tile_doc[TileKeys.FILE]
-                    backend, name, _ = resolve_url(name_or_url, baseurl)
+                    relative_path_or_url = tile_doc[TileKeys.FILE]
+                    backend, name, _ = resolve_url(relative_path_or_url, baseurl)
 
                     tile_format_str = tile_doc.get(TileKeys.TILE_FORMAT, None)
                     if tile_format_str:
@@ -175,7 +175,7 @@ class v0_0_0(object):
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
                     tile.set_source_fh_contextmanager(backend.read_file_handle_callable(name), tile_format)
-                    tile._file_or_url = name_or_url
+                    tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:
                 raise ValueError("json doc does not appear to be a TOC partition or an image partition")
@@ -195,16 +195,16 @@ class v0_0_0(object):
                 CommonPartitionKeys.EXTRAS: imagestack.extras,
             }
             if isinstance(imagestack, TocPartition):
-                json_doc[TocPartitionKeys.TOCS] = []
-                for toc in imagestack._tocs:
+                json_doc[TocPartitionKeys.TOCS] = dict()
+                for partition_name, partition in imagestack._partitions.items():
                     tocpath = toc_path_generator(path)
                     Writer.write_to_path(
-                        toc, tocpath,
+                        partition, tocpath,
                         toc_path_generator=toc_path_generator,
                         tile_opener=tile_opener,
                         tile_writer=tile_writer
                     )
-                    json_doc[TocPartitionKeys.TOCS].append(os.path.basename(tocpath))
+                    json_doc[TocPartitionKeys.TOCS][partition_name] = os.path.basename(tocpath)
                 return json_doc
             elif isinstance(imagestack, ImagePartition):
                 json_doc[ImagePartitionKeys.DIMENSIONS] = tuple(imagestack.dimensions)

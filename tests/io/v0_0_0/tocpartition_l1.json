@@ -1,6 +1,6 @@
 {
     "version": "0.0.0",
-    "tocs": [
-        "imagepartition.json"
-    ]
+    "tocs": {
+        "fov_001": "imagepartition.json"
+    }
 }

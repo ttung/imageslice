@@ -90,7 +90,7 @@ class TestWrite(unittest.TestCase):
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
         toc = slicedimage.TocPartition()
-        toc.add_toc(image)
+        toc.add_partition("fov002", image)
 
         with TemporaryDirectory() as tempdir, tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as toc_file:
             toc_doc = slicedimage.v0_0_0.Writer().generate_toc(toc, toc_file.name)

@@ -22,7 +22,10 @@ The location for each tile is given in coordinates and indices.  Coordinates is 
 Format
 ------
 
-Each image set should have a manifest, which is a hierarchical tree of JSON table-of-contents documents.  The leaf TOC documents contain list of tiles (`Image partition TOC`_) and the non-leaf TOC documents (`TOC partition`_) contain lists of other TOC documents.
+Each image should have a manifest, which is a hierarchical tree of JSON table-of-contents documents.  The leaf documents (`Image partition`_) contain a list of tiles.  The non-leaf documents (`TOC partition`_) contain a map from an arbitrary unique name (within the space of the entire image) to relative paths or URLs containing either other `TOC partitions`__ or `image partitions`__.
+
+__ `TOC partition`_
+__ `Image partition`_
 
 .. _`TOC partition`:
 
@@ -35,17 +38,21 @@ TOC partitions should have the following fields:
 Field Name           Type    Required  Description
 -------------------  ------  --------  ---------------------------------------------------------------------------------
 version              string  Yes       Semantic versioning of the file format.
-tocs                 list    Yes       List of relative paths or URLs to other TOC files.
+tocs                 dict    Yes       Map of names to relative paths or URLs of `image partitions`__ or
+                                       `TOC partition`__.
 extras               dict    No        Additional application-specific payload.  The vocabulary and the schema are
                                        uncontrolled.
 ===================  ======  ========  =================================================================================
 
-.. _`Image partition TOC`:
+__ `Image partition`_
+__ `TOC partition`_
 
-Image partition TOC
-~~~~~~~~~~~~~~~~~~~
+.. _`Image partition`:
 
-Image partition TOCs should have the following fields:
+Image partition
+~~~~~~~~~~~~~~~
+
+Image partitions should have the following fields:
 
 ===================  ======  ========  =================================================================================
 Field Name           Type    Required  Description

@@ -1,6 +1,6 @@
 {
     "version": "0.0.0",
-    "tocs": [
-        "tocpartition_l1.json"
-    ]
+    "tocs": {
+        "toc001": "tocpartition_l1.json"
+    }
 }
