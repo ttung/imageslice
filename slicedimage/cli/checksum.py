@@ -8,9 +8,11 @@ from ._base import CliCommand
 class ChecksumCommand(CliCommand):
     @classmethod
     def register_parser(cls, subparser_root):
-        checksum_command = subparser_root.add_parser("checksum", help="Read a TOC file and add missing checksums.")
-        checksum_command.add_argument("in_url", help="URL for the source TOC file")
-        checksum_command.add_argument("out_path", help="Path to write TOC file with checksums")
+        checksum_command = subparser_root.add_parser(
+            "checksum",
+            help="Read a partition file and add missing checksums.")
+        checksum_command.add_argument("in_url", help="URL for the source partition file")
+        checksum_command.add_argument("out_path", help="Path to write partition file with checksums")
         checksum_command.add_argument("--pretty", action="store_true", help="Pretty-print the output file")
 
         return checksum_command
@@ -24,11 +26,11 @@ class ChecksumCommand(CliCommand):
             slicedimage,
             args.out_path,
             pretty=args.pretty,
-            tile_opener=identity_file_namer,
+            tile_opener=fake_file_opener,
             tile_writer=null_writer)
 
 
-def identity_file_namer(toc_path, tile, ext):
+def fake_file_opener(partition_path, tile, ext):
     class fake_handle(object):
         def __init__(self, name):
             self.name = name

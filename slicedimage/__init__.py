@@ -1,18 +1,18 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ._formats import ImageFormat
-from ._imagepartition import ImagePartition
+from ._collection import Collection
 from ._tile import Tile
-from ._tocpartition import TocPartition
+from ._tileset import TileSet
 from .io import Reader, Writer, v0_0_0
 
 
 __all__ = [
+    Collection,
     ImageFormat,
-    ImagePartition,
     Reader,
     Tile,
-    TocPartition,
+    TileSet,
     Writer,
     v0_0_0,
 ]

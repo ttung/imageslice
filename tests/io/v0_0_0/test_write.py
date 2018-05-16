@@ -19,8 +19,8 @@ baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 
 
 class TestWrite(unittest.TestCase):
-    def test_write_imagepartition(self):
-        image = slicedimage.ImagePartition(
+    def test_write_tileset(self):
+        image = slicedimage.TileSet(
             ["x", "y", "ch", "hyb"],
             {'ch': 2, 'hyb': 2},
             (100, 100),
@@ -42,14 +42,15 @@ class TestWrite(unittest.TestCase):
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
-        with TemporaryDirectory() as tempdir, tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as toc_file:
-            toc_doc = slicedimage.v0_0_0.Writer().generate_toc(image, toc_file.name)
+        with TemporaryDirectory() as tempdir, \
+                tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(image, partition_file.name)
             writer = codecs.getwriter("utf-8")
-            json.dump(toc_doc, writer(toc_file))
-            toc_file.flush()
+            json.dump(partition_doc, writer(partition_file))
+            partition_file.flush()
 
-            basename = os.path.basename(toc_file.name)
-            baseurl = "file://{}".format(os.path.dirname(toc_file.name))
+            basename = os.path.basename(partition_file.name)
+            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
 
             loaded = slicedimage.Reader.parse_doc(basename, baseurl)
 
@@ -67,8 +68,8 @@ class TestWrite(unittest.TestCase):
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())
                     self.assertIsNotNone(tiles[0].sha256)
 
-    def test_write_tocpartition(self):
-        image = slicedimage.ImagePartition(
+    def test_write_collection(self):
+        image = slicedimage.TileSet(
             ["x", "y", "ch", "hyb"],
             {'ch': 2, 'hyb': 2},
             (100, 100),
@@ -89,17 +90,18 @@ class TestWrite(unittest.TestCase):
                 tile.numpy_array = numpy.zeros((100, 100))
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
-        toc = slicedimage.TocPartition()
-        toc.add_partition("fov002", image)
+        collection = slicedimage.Collection()
+        collection.add_partition("fov002", image)
 
-        with TemporaryDirectory() as tempdir, tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as toc_file:
-            toc_doc = slicedimage.v0_0_0.Writer().generate_toc(toc, toc_file.name)
+        with TemporaryDirectory() as tempdir, \
+                tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(collection, partition_file.name)
             writer = codecs.getwriter("utf-8")
-            json.dump(toc_doc, writer(toc_file))
-            toc_file.flush()
+            json.dump(partition_doc, writer(partition_file))
+            partition_file.flush()
 
-            basename = os.path.basename(toc_file.name)
-            baseurl = "file://{}".format(os.path.dirname(toc_file.name))
+            basename = os.path.basename(partition_file.name)
+            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
 
             loaded = slicedimage.Reader.parse_doc(basename, baseurl)
 

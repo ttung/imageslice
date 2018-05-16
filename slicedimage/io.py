@@ -11,10 +11,10 @@ from six.moves import urllib
 
 from slicedimage.urlpath import pathsplit
 from .backends import DiskBackend, HttpBackend
+from ._collection import Collection
 from ._formats import ImageFormat
-from ._imagepartition import ImagePartition
 from ._tile import Tile
-from ._tocpartition import TocPartition
+from ._tileset import TileSet
 
 
 def infer_backend(baseurl, allow_caching=True):
@@ -93,30 +93,30 @@ class Reader(object):
 
 class Writer(object):
     @staticmethod
-    def write_to_path(imagestack, path, pretty=False, *args, **kwargs):
-        document = v0_0_0.Writer().generate_toc(imagestack, path, pretty, *args, **kwargs)
+    def write_to_path(partition, path, pretty=False, *args, **kwargs):
+        document = v0_0_0.Writer().generate_partition_document(partition, path, pretty, *args, **kwargs)
         indent = 4 if pretty else None
         with open(path, "w") as fh:
             json.dump(document, fh, indent=indent, sort_keys=pretty)
 
     @staticmethod
-    def default_toc_path_generator(parent_toc_path, toc_name):
-        toc_basename = os.path.splitext(os.path.basename(parent_toc_path))[0]
-        toc_path = tempfile.NamedTemporaryFile(
+    def default_partition_path_generator(parent_partition_path, partition_name):
+        parent_partition_stem = os.path.splitext(os.path.basename(parent_partition_path))[0]
+        partition_file = tempfile.NamedTemporaryFile(
             suffix=".json",
-            prefix="{}-".format(toc_basename),
-            dir=os.path.dirname(parent_toc_path),
+            prefix="{}-".format(parent_partition_stem),
+            dir=os.path.dirname(parent_partition_path),
             delete=False,
         )
-        return toc_path.name
+        return partition_file.name
 
     @staticmethod
-    def default_tile_opener(toc_path, tile, ext):
-        tile_basename = os.path.splitext(os.path.basename(toc_path))[0]
+    def default_tile_opener(tileset_path, tile, ext):
+        tile_stemp = os.path.splitext(os.path.basename(tileset_path))[0]
         return tempfile.NamedTemporaryFile(
             suffix=".{}".format(ext),
-            prefix="{}-".format(tile_basename),
-            dir=os.path.dirname(toc_path),
+            prefix="{}-".format(tile_stemp),
+            dir=os.path.dirname(tileset_path),
             delete=False,
         )
 
@@ -125,7 +125,7 @@ class Writer(object):
         tile.write(fh)
         return ImageFormat.NUMPY
 
-    def generate_toc(self, imagestack, path, pretty=False, *args, **kwargs):
+    def generate_partition_document(self, partition, path, pretty=False, *args, **kwargs):
         raise NotImplementedError()
 
 
@@ -134,26 +134,26 @@ class v0_0_0(object):
 
     class Reader(Reader):
         def parse(self, json_doc, baseurl):
-            if TocPartitionKeys.TOCS in json_doc:
-                # this is a TocPartition
-                result = TocPartition(json_doc.get(CommonPartitionKeys.EXTRAS, None))
-                for name, relative_path_or_url in json_doc[TocPartitionKeys.TOCS].items():
-                    toc = Reader.parse_doc(relative_path_or_url, baseurl)
-                    toc._name_or_url = relative_path_or_url
-                    result.add_partition(name, toc)
-            elif ImagePartitionKeys.TILES in json_doc:
-                imageformat = json_doc.get(ImagePartitionKeys.DEFAULT_TILE_FORMAT, None)
+            if CollectionKeys.CONTENTS in json_doc:
+                # this is a Collection
+                result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
+                for name, relative_path_or_url in json_doc[CollectionKeys.CONTENTS].items():
+                    collection = Reader.parse_doc(relative_path_or_url, baseurl)
+                    collection._name_or_url = relative_path_or_url
+                    result.add_partition(name, collection)
+            elif TileSetKeys.TILES in json_doc:
+                imageformat = json_doc.get(TileSetKeys.DEFAULT_TILE_FORMAT, None)
                 if imageformat is not None:
                     imageformat = ImageFormat[imageformat]
-                result = ImagePartition(
-                    tuple(json_doc[ImagePartitionKeys.DIMENSIONS]),
-                    json_doc[ImagePartitionKeys.SHAPE],
-                    json_doc.get(ImagePartitionKeys.DEFAULT_TILE_SHAPE, None),
+                result = TileSet(
+                    tuple(json_doc[TileSetKeys.DIMENSIONS]),
+                    json_doc[TileSetKeys.SHAPE],
+                    json_doc.get(TileSetKeys.DEFAULT_TILE_SHAPE, None),
                     imageformat,
-                    json_doc.get(ImagePartitionKeys.EXTRAS, None),
+                    json_doc.get(TileSetKeys.EXTRAS, None),
                 )
 
-                for tile_doc in json_doc[ImagePartitionKeys.TILES]:
+                for tile_doc in json_doc[TileSetKeys.TILES]:
                     relative_path_or_url = tile_doc[TileKeys.FILE]
                     backend, name, _ = resolve_url(relative_path_or_url, baseurl)
 
@@ -178,48 +178,48 @@ class v0_0_0(object):
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:
-                raise ValueError("json doc does not appear to be a TOC partition or an image partition")
+                raise ValueError("json doc does not appear to be a collection partition or a tileset partition")
 
             return result
 
     class Writer(Writer):
-        def generate_toc(
+        def generate_partition_document(
                 self,
-                imagestack,
+                partition,
                 path,
                 pretty=False,
-                toc_path_generator=Writer.default_toc_path_generator,
+                partition_path_generator=Writer.default_partition_path_generator,
                 tile_opener=Writer.default_tile_opener,
                 tile_writer=Writer.default_tile_writer):
             json_doc = {
                 CommonPartitionKeys.VERSION: v0_0_0.VERSION,
-                CommonPartitionKeys.EXTRAS: imagestack.extras,
+                CommonPartitionKeys.EXTRAS: partition.extras,
             }
-            if isinstance(imagestack, TocPartition):
-                json_doc[TocPartitionKeys.TOCS] = dict()
-                for partition_name, partition in imagestack._partitions.items():
-                    tocpath = toc_path_generator(path, partition_name)
+            if isinstance(partition, Collection):
+                json_doc[CollectionKeys.CONTENTS] = dict()
+                for partition_name, partition in partition._partitions.items():
+                    partition_path = partition_path_generator(path, partition_name)
                     Writer.write_to_path(
-                        partition, tocpath, pretty,
-                        toc_path_generator=toc_path_generator,
+                        partition, partition_path, pretty,
+                        partition_path_generator=partition_path_generator,
                         tile_opener=tile_opener,
                         tile_writer=tile_writer
                     )
-                    json_doc[TocPartitionKeys.TOCS][partition_name] = os.path.basename(tocpath)
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(partition_path)
                 return json_doc
-            elif isinstance(imagestack, ImagePartition):
-                json_doc[ImagePartitionKeys.DIMENSIONS] = tuple(imagestack.dimensions)
-                json_doc[ImagePartitionKeys.SHAPE] = imagestack.shape
-                json_doc[ImagePartitionKeys.TILES] = []
+            elif isinstance(partition, TileSet):
+                json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
+                json_doc[TileSetKeys.SHAPE] = partition.shape
+                json_doc[TileSetKeys.TILES] = []
 
-                if imagestack.default_tile_shape is not None:
-                    json_doc[ImagePartitionKeys.DEFAULT_TILE_SHAPE] = imagestack.default_tile_shape
-                if imagestack.default_tile_format is not None:
-                    json_doc[ImagePartitionKeys.DEFAULT_TILE_FORMAT] = imagestack.default_tile_format.name
-                if len(imagestack.extras) != 0:
-                    json_doc[ImagePartitionKeys.EXTRAS] = imagestack.extras
+                if partition.default_tile_shape is not None:
+                    json_doc[TileSetKeys.DEFAULT_TILE_SHAPE] = partition.default_tile_shape
+                if partition.default_tile_format is not None:
+                    json_doc[TileSetKeys.DEFAULT_TILE_FORMAT] = partition.default_tile_format.name
+                if len(partition.extras) != 0:
+                    json_doc[TileSetKeys.EXTRAS] = partition.extras
 
-                for tile in imagestack._tiles:
+                for tile in partition._tiles:
                     tiledoc = {
                         TileKeys.COORDINATES: tile.coordinates,
                         TileKeys.INDICES: tile.indices,
@@ -244,7 +244,7 @@ class v0_0_0(object):
                         tiledoc[TileKeys.TILE_FORMAT] = tile_format.name
                     if len(tile.extras) != 0:
                         tiledoc[TileKeys.EXTRAS] = tile.extras
-                    json_doc[ImagePartitionKeys.TILES].append(tiledoc)
+                    json_doc[TileSetKeys.TILES].append(tiledoc)
 
                 return json_doc
 
@@ -284,11 +284,11 @@ class CommonPartitionKeys(object):
     EXTRAS = "extras"
 
 
-class TocPartitionKeys(CommonPartitionKeys):
-    TOCS = "tocs"
+class CollectionKeys(CommonPartitionKeys):
+    CONTENTS = "contents"
 
 
-class ImagePartitionKeys(CommonPartitionKeys):
+class TileSetKeys(CommonPartitionKeys):
     DIMENSIONS = "dimensions"
     SHAPE = "shape"
     DEFAULT_TILE_SHAPE = "default_tile_shape"

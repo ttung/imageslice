@@ -15,24 +15,24 @@ baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 
 
 class TestReader(unittest.TestCase):
-    def test_read_imagepartition(self):
-        result = slicedimage.Reader.parse_doc("imagepartition.json", baseurl)
-        self.assertIsInstance(result, slicedimage.ImagePartition)
+    def test_read_tileset(self):
+        result = slicedimage.Reader.parse_doc("tileset.json", baseurl)
+        self.assertIsInstance(result, slicedimage.TileSet)
         self.assertEqual(result.shape, {'hyb': 4, 'ch': 4})
         self._verify_tiles(result.tiles())
 
-    def test_read_tocpartition(self):
-        result = slicedimage.Reader.parse_doc("tocpartition_l1.json", baseurl)
-        self.assertIsInstance(result, slicedimage.TocPartition)
-        toc = result.find_image_partition("fov_001")
-        self.assertEqual(toc.shape, {'hyb': 4, 'ch': 4})
+    def test_read_collection(self):
+        result = slicedimage.Reader.parse_doc("collection_l1.json", baseurl)
+        self.assertIsInstance(result, slicedimage.Collection)
+        tileset = result.find_tileset("fov_001")
+        self.assertEqual(tileset.shape, {'hyb': 4, 'ch': 4})
         self._verify_tiles(result.tiles())
 
-    def test_read_multilevel_tpartition(self):
-        result = slicedimage.Reader.parse_doc("tocpartition_l2.json", baseurl)
-        self.assertIsInstance(result, slicedimage.TocPartition)
-        toc = result.find_image_partition("fov_001")
-        self.assertEqual(toc.shape, {'hyb': 4, 'ch': 4})
+    def test_read_multilevel_collection(self):
+        result = slicedimage.Reader.parse_doc("collection_l2.json", baseurl)
+        self.assertIsInstance(result, slicedimage.Collection)
+        tileset = result.find_tileset("fov_001")
+        self.assertEqual(tileset.shape, {'hyb': 4, 'ch': 4})
         self._verify_tiles(result.tiles())
 
     def _verify_tiles(self, tile_generator):
