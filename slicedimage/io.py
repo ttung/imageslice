@@ -18,6 +18,8 @@ from ._tileset import TileSet
 
 
 def infer_backend(baseurl, allow_caching=True):
+    """Guess the backend based on the format of `baseurl`, the consistent part of the URL or file path"""
+
     parsed = urllib.parse.urlparse(baseurl)
 
     if parsed.scheme in ("http", "https"):
@@ -25,7 +27,9 @@ def infer_backend(baseurl, allow_caching=True):
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:
-        raise ValueError("Unable to infer backend for url {}".format(baseurl))
+        raise ValueError(
+                "Unable to infer backend for url {}, please verify that baseurl points to a valid directory or web "
+                "address".format(baseurl))
 
     if allow_caching:
         # TODO: construct caching backend and return that.
@@ -80,10 +84,13 @@ class Reader(object):
         reader = codecs.getreader("utf-8")
         json_doc = json.load(reader(fh))
 
-        if version.parse(json_doc[CommonPartitionKeys.VERSION]) >= version.parse(v0_0_0.VERSION):
-            parser = v0_0_0.Reader()
-        else:
-            raise ValueError("Unrecognized version number")
+        try:
+            if version.parse(json_doc[CommonPartitionKeys.VERSION]) >= version.parse(v0_0_0.VERSION):
+                parser = v0_0_0.Reader()
+            else:
+                raise ValueError("Unrecognized version number")
+        except KeyError:
+            raise KeyError("JSON document missing `version` field. Please specify the file format version.")
 
         return parser.parse(json_doc, baseurl)
 
@@ -178,7 +185,11 @@ class v0_0_0(object):
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:
-                raise ValueError("json doc does not appear to be a collection partition or a tileset partition")
+                raise ValueError(
+                        "JSON doc does not appear to be a collection partition or a tileset partition. JSON doc "
+                        "must contain either a {contents} field pointing to a tile manifest, or it must contain "
+                        "a {tiles} field that specifies a set of tiles.".format(
+                            contents=CollectionKeys.CONTENTS, tiles=TileSetKeys.TILES))
 
             return result
 
