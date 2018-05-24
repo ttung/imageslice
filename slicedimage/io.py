@@ -164,7 +164,7 @@ class v0_0_0(object):
                         tile_format = result.default_tile_format
                     if tile_format is None:
                         # Still none :(
-                        extension = os.path.splitext(name)[1]
+                        extension = os.path.splitext(name)[1].lstrip(".")
                         tile_format = ImageFormat.find_by_extension(extension)
 
                     tile = Tile(
