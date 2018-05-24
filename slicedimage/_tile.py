@@ -26,6 +26,7 @@ class Tile(object):
                 self._numpy_array = self.tile_format.reader_func(src_fh)
             self._source_fh_contextmanager = None
             self.tile_format = ImageFormat.NUMPY
+            self.tile_shape = self.numpy_array.shape
 
     @property
     def numpy_array(self):
@@ -40,6 +41,7 @@ class Tile(object):
         self._source_fh_contextmanager = None
         self._numpy_array = numpy_array
         self.tile_format = ImageFormat.NUMPY
+        self.tile_shape = self._numpy_array.shape
 
     def set_source_fh_contextmanager(self, source_fh_contextmanager, tile_format):
         """
