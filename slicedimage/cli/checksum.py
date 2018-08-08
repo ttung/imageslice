@@ -11,9 +11,16 @@ class ChecksumCommand(CliCommand):
         checksum_command = subparser_root.add_parser(
             "checksum",
             help="Read a partition file and add missing checksums.")
-        checksum_command.add_argument("in_url", help="URL for the source partition file")
-        checksum_command.add_argument("out_path", help="Path to write partition file with checksums")
-        checksum_command.add_argument("--pretty", action="store_true", help="Pretty-print the output file")
+        checksum_command.add_argument(
+            "in_url",
+            help="URL for the source partition file")
+        checksum_command.add_argument(
+            "out_path",
+            help="Path to write partition file with checksums")
+        checksum_command.add_argument(
+            "--pretty",
+            action="store_true",
+            help="Pretty-print the output file")
 
         return checksum_command
 

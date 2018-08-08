@@ -15,7 +15,9 @@ class Collection(object):
         self._partitions[name] = partition
 
     def all_tilesets(self):
-        """Return all tilesets in this collection, directly or indirectly, as (name, tileset) tuples."""
+        """
+        Return all tilesets in this collection, directly or indirectly, as (name, tileset) tuples.
+        """
         for name, partition in self._partitions.items():
             if isinstance(partition, Collection):
                 for descendant_name, descendant_tileset in partition.all_tilesets():

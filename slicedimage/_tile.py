@@ -21,7 +21,8 @@ class Tile(object):
 
     def _load(self):
         if self._source_fh_contextmanager is not None:
-            assert self._numpy_array is None, "Inconsistent state.  Tile should only have one data source."
+            assert self._numpy_array is None, ("Inconsistent state.  Tile should only have one "
+                                               "data source.")
             with self._source_fh_contextmanager() as src_fh:
                 self._numpy_array = self.tile_format.reader_func(src_fh)
             self._source_fh_contextmanager = None
@@ -45,9 +46,10 @@ class Tile(object):
 
     def set_source_fh_contextmanager(self, source_fh_contextmanager, tile_format):
         """
-        Provides a tile with a callable, which should yield a context manager that returns a file-like object.  If the
-        tile data is requested, the context manager is invoked and the data is read from the returned file-like object.
-        It is possible that the context manager is never invoked.
+        Provides a tile with a callable, which should yield a context manager that returns a
+        file-like object.  If the  tile data is requested, the context manager is invoked and the
+        data is read from the returned file-like object.  It is possible that the context manager is
+        never invoked.
         """
         self._source_fh_contextmanager = source_fh_contextmanager
         self._numpy_array = None
@@ -65,7 +67,8 @@ class Tile(object):
 
     def copy(self, dst_fh):
         """
-        Write the contents of this tile out to a given file handle, in the original file format provided.
+        Write the contents of this tile out to a given file handle, in the original file format
+        provided.
         """
         if self._source_fh_contextmanager is not None:
             assert self._numpy_array is None
