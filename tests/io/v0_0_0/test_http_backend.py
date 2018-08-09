@@ -96,6 +96,42 @@ class TestHttpBackend(unittest.TestCase):
 
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
 
+    def test_numpy(self):
+        """
+        Generate a tileset consisting of a single NUMPY tile.  Deposit it where the HTTP server can
+        find the tileset, and fetch it.
+        """
+        image = slicedimage.TileSet(
+            ["x", "y", "ch", "hyb"],
+            {'ch': 1, 'hyb': 1},
+            (100, 100),
+        )
+
+        tile = slicedimage.Tile(
+            {
+                'x': (0.0, 0.01),
+                'y': (0.0, 0.01),
+            },
+            {
+                'hyb': 0,
+                'ch': 0,
+            },
+        )
+        tile.numpy_array = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
+        image.add_tile(tile)
+
+        partition_path = os.path.join(self.tempdir.name, "tileset.json")
+        partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
+            image, partition_path)
+        with open(partition_path, "w") as fh:
+            json.dump(partition_doc, fh)
+
+        result = slicedimage.Reader.parse_doc(
+            "tileset.json",
+            "http://localhost:{port}/".format(port=self.port))
+
+        self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, tile.numpy_array))
+
 
 def _unused_tcp_port():
     """

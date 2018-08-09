@@ -188,8 +188,9 @@ class v0_0_0(object):
                         sha256=tile_doc.get(TileKeys.SHA256, None),
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
+                    seekable = True if tile_format == ImageFormat.NUMPY else False
                     tile.set_source_fh_contextmanager(
-                        backend.read_file_handle_callable(name), tile_format)
+                        backend.read_file_handle_callable(name, seekable=seekable), tile_format)
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:

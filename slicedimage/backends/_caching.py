@@ -10,7 +10,7 @@ class CachingBackend(Backend):
         self._cacheroot = cacheroot
         self._authoritative_backend = authoritative_backend
 
-    def read_file_handle_callable(self, name, checksum_sha1=None):
+    def read_file_handle_callable(self, name, checksum_sha1=None, seekable=False):
         # TODO: (ttung) This is a very very primitive cache.  Should make this more robust with
         # evictions and all that good stuff.
         cachedir = os.path.join(self._cacheroot, checksum_sha1[0:2], checksum_sha1[2:4])
