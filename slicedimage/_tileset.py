@@ -5,7 +5,13 @@ from ._typeformatting import format_tileset_dimensions, format_tileset_shape
 
 
 class TileSet(object):
-    def __init__(self, dimensions, shape, default_tile_shape=None, default_tile_format=None, extras=None):
+    def __init__(
+            self,
+            dimensions,
+            shape,
+            default_tile_shape=None,
+            default_tile_format=None,
+            extras=None):
         self.dimensions = format_tileset_dimensions(dimensions)
         self.shape = format_tileset_shape(shape)
         self.default_tile_shape = None if default_tile_shape is None else tuple(default_tile_shape)
@@ -23,8 +29,8 @@ class TileSet(object):
 
     def tiles(self, filter_fn=lambda _: True):
         """
-        Return the tiles in this tileset.  If a filter_fn is provided, only the tiles for which filter_fn returns True
-        are returned.
+        Return the tiles in this tileset.  If a filter_fn is provided, only the tiles for which
+        filter_fn returns True are returned.
         """
         for tile in self._tiles:
             if filter_fn(tile):

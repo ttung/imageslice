@@ -44,7 +44,8 @@ class TestWrite(unittest.TestCase):
 
         with TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
-            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(image, partition_file.name)
+            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
+                image, partition_file.name)
             writer = codecs.getwriter("utf-8")
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
@@ -57,8 +58,9 @@ class TestWrite(unittest.TestCase):
             for hyb in range(2):
                 for ch in range(2):
                     tiles = [_tile
-                             for _tile in loaded.tiles(lambda tile:
-                                                       tile.indices['hyb'] == hyb and tile.indices['ch'] == ch)]
+                             for _tile in loaded.tiles(
+                                 lambda tile: (tile.indices['hyb'] == hyb and
+                                               tile.indices['ch'] == ch))]
 
                     self.assertEqual(len(tiles), 1)
 
@@ -95,7 +97,8 @@ class TestWrite(unittest.TestCase):
 
         with TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
-            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(collection, partition_file.name)
+            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
+                collection, partition_file.name)
             writer = codecs.getwriter("utf-8")
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
@@ -108,8 +111,9 @@ class TestWrite(unittest.TestCase):
             for hyb in range(2):
                 for ch in range(2):
                     tiles = [_tile
-                             for _tile in loaded.tiles(lambda tile:
-                                                       tile.indices['hyb'] == hyb and tile.indices['ch'] == ch)]
+                             for _tile in loaded.tiles(
+                                 lambda tile: (tile.indices['hyb'] == hyb and
+                                               tile.indices['ch'] == ch))]
 
                     self.assertEqual(len(tiles), 1)
 

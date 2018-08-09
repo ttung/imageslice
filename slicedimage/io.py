@@ -18,7 +18,9 @@ from ._tileset import TileSet
 
 
 def infer_backend(baseurl, allow_caching=True):
-    """Guess the backend based on the format of `baseurl`, the consistent part of the URL or file path"""
+    """
+    Guess the backend based on the format of `baseurl`, the consistent part of the URL or file path.
+    """
 
     parsed = urllib.parse.urlparse(baseurl)
 
@@ -28,8 +30,8 @@ def infer_backend(baseurl, allow_caching=True):
         backend = DiskBackend(parsed.path)
     else:
         raise ValueError(
-                "Unable to infer backend for url {}, please verify that baseurl points to a valid directory or web "
-                "address".format(baseurl))
+                "Unable to infer backend for url {}, please verify that baseurl points to a valid "
+                "directory or web address".format(baseurl))
 
     if allow_caching:
         # TODO: construct caching backend and return that.
@@ -40,8 +42,9 @@ def infer_backend(baseurl, allow_caching=True):
 
 def resolve_path_or_url(path_or_url, allow_caching=True):
     """
-    Given either a path (absolute or relative), or a URL, attempt to resolve it.  Returns a tuple consisting of:
-    a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of the object.
+    Given either a path (absolute or relative), or a URL, attempt to resolve it.  Returns a tuple
+    consisting of: a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and
+    the baseurl of the object.
     """
     try:
         return resolve_url(path_or_url, allow_caching=allow_caching)
@@ -58,7 +61,8 @@ def resolve_path_or_url(path_or_url, allow_caching=True):
 def resolve_url(name_or_url, baseurl=None, allow_caching=True):
     """
     Given a string that can either be a name or a fully qualified url, return a tuple consisting of:
-    a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of the object.
+    a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of
+    the object.
 
     If the string is a name and not a fully qualified url, then baseurl must be set.
     """
@@ -83,14 +87,16 @@ class Reader(object):
         fh = backend.read_file_handle(name)
         reader = codecs.getreader("utf-8")
         json_doc = json.load(reader(fh))
+        doc_version = version.parse(json_doc[CommonPartitionKeys.VERSION])
 
         try:
-            if version.parse(json_doc[CommonPartitionKeys.VERSION]) >= version.parse(v0_0_0.VERSION):
+            if doc_version >= version.parse(v0_0_0.VERSION):
                 parser = v0_0_0.Reader()
             else:
                 raise ValueError("Unrecognized version number")
         except KeyError:
-            raise KeyError("JSON document missing `version` field. Please specify the file format version.")
+            raise KeyError(
+                "JSON document missing `version` field. Please specify the file format version.")
 
         return parser.parse(json_doc, baseurl)
 
@@ -101,7 +107,8 @@ class Reader(object):
 class Writer(object):
     @staticmethod
     def write_to_path(partition, path, pretty=False, *args, **kwargs):
-        document = v0_0_0.Writer().generate_partition_document(partition, path, pretty, *args, **kwargs)
+        document = v0_0_0.Writer().generate_partition_document(
+            partition, path, pretty, *args, **kwargs)
         indent = 4 if pretty else None
         with open(path, "w") as fh:
             json.dump(document, fh, indent=indent, sort_keys=pretty)
@@ -181,14 +188,16 @@ class v0_0_0(object):
                         sha256=tile_doc.get(TileKeys.SHA256, None),
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
-                    tile.set_source_fh_contextmanager(backend.read_file_handle_callable(name), tile_format)
+                    tile.set_source_fh_contextmanager(
+                        backend.read_file_handle_callable(name), tile_format)
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:
                 raise ValueError(
-                        "JSON doc does not appear to be a collection partition or a tileset partition. JSON doc "
-                        "must contain either a {contents} field pointing to a tile manifest, or it must contain "
-                        "a {tiles} field that specifies a set of tiles.".format(
+                        "JSON doc does not appear to be a collection partition or a tileset "
+                        "partition. JSON doc must contain either a {contents} field pointing to a "
+                        "tile manifest, or it must contain a {tiles} field that specifies a set of "
+                        "tiles.".format(
                             contents=CollectionKeys.CONTENTS, tiles=TileSetKeys.TILES))
 
             return result
@@ -216,7 +225,8 @@ class v0_0_0(object):
                         tile_opener=tile_opener,
                         tile_writer=tile_writer
                     )
-                    json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(partition_path)
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(
+                        partition_path)
                 return json_doc
             elif isinstance(partition, TileSet):
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
