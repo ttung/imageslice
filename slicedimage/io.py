@@ -10,7 +10,7 @@ from packaging import version
 from six.moves import urllib
 
 from slicedimage.urlpath import pathsplit
-from .backends import DiskBackend, HttpBackend
+from .backends import DiskBackend, HttpBackend, CachingBackend
 from ._collection import Collection
 from ._formats import ImageFormat
 from ._tile import Tile
@@ -26,17 +26,14 @@ def infer_backend(baseurl, allow_caching=True):
 
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
+        if allow_caching:
+            backend = CachingBackend("~/.", backend)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:
         raise ValueError(
                 "Unable to infer backend for url {}, please verify that baseurl points to a valid "
                 "directory or web address".format(baseurl))
-
-    if allow_caching:
-        # TODO: construct caching backend and return that.
-        pass
-
     return backend
 
 
@@ -180,17 +177,17 @@ class v0_0_0(object):
                         # Still none :(
                         extension = os.path.splitext(name)[1].lstrip(".")
                         tile_format = ImageFormat.find_by_extension(extension)
-
+                    checksum = tile_doc.get(TileKeys.SHA256, None)
                     tile = Tile(
                         tile_doc[TileKeys.COORDINATES],
                         tile_doc[TileKeys.INDICES],
                         tile_shape=tile_doc.get(TileKeys.TILE_SHAPE, None),
-                        sha256=tile_doc.get(TileKeys.SHA256, None),
+                        sha256=checksum,
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
                     seekable = True if tile_format == ImageFormat.NUMPY else False
                     tile.set_source_fh_contextmanager(
-                        backend.read_file_handle_callable(name, seekable=seekable), tile_format)
+                        backend.read_file_handle_callable(name, checksum_sha1=checksum, seekable=seekable), tile_format)
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:

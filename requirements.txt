@@ -4,3 +4,4 @@ numpy
 requests
 scikit-image
 six
+diskcache
