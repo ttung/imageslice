@@ -11,6 +11,7 @@ class CachingBackend(Backend):
         self._authoritative_backend = authoritative_backend
         self.cache = Cache(cacheroot, size_limit=int(4e9))
 
+
     def read_file_handle_callable(self, name, checksum_sha1=None, seekable=False):
         def returned_callable():
             #only need to cache tile data?
