@@ -143,7 +143,6 @@ class Writer(object):
 class v0_0_0(object):
     VERSION = "0.0.0"
 
-
     class Reader(Reader):
         def parse(self, json_doc, baseurl):
             if CollectionKeys.CONTENTS in json_doc:
