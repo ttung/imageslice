@@ -9,7 +9,7 @@ class CachingBackend(Backend):
     def __init__(self, cacheroot, authoritative_backend):
         self._cacheroot = cacheroot
         self._authoritative_backend = authoritative_backend
-        self.cache = Cache(cacheroot, size_limit=int(4e9))
+        self.cache = Cache(cacheroot, size_limit=int(5e9))
 
 
     def read_file_handle_callable(self, name, checksum_sha1=None, seekable=False):

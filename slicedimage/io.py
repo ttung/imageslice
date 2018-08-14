@@ -27,7 +27,7 @@ def infer_backend(baseurl, allow_caching=True):
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
         if allow_caching:
-            backend = CachingBackend("~/.", backend)
+            backend = CachingBackend("~/dev/testingCache", backend)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:
@@ -142,7 +142,6 @@ class Writer(object):
 
 class v0_0_0(object):
     VERSION = "0.0.0"
-
 
     class Reader(Reader):
         def parse(self, json_doc, baseurl):
