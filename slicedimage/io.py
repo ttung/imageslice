@@ -27,7 +27,7 @@ def infer_backend(baseurl, allow_caching=True):
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
         if allow_caching:
-            backend = CachingBackend("~/dev/testingCache", backend)
+            backend = CachingBackend("~/tmp", backend)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:

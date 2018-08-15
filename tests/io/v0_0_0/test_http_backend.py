@@ -10,6 +10,7 @@ import unittest
 import numpy as np
 import requests
 import skimage.io
+import random
 
 pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))  # noqa
 sys.path.insert(0, pkg_root)  # noqa
@@ -85,6 +86,8 @@ class TestHttpBackend(unittest.TestCase):
                 },
                 "file": "tile.tiff",
                 "format": "tiff",
+                "sha256": random.getrandbits(128)
+
             },
         )
         with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:
