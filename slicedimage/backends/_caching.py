@@ -1,6 +1,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import io
+
 from diskcache import Cache
+from six import BytesIO
+
 from ._base import Backend
 
 
@@ -16,7 +20,12 @@ class CachingBackend(Backend):
                 if not self.cache.get(checksum_sha1):
                     sfh = self._authoritative_backend.read_file_handle(name)
                     self.cache.set(checksum_sha1, sfh.data)
-                return self.cache.read(checksum_sha1)
+                file_data = self.cache.read(checksum_sha1)
+                #The DiskCache library returns the cache data as bytes instead of a buffered reader if the data is small enough
+                #Check what was returned and convert to a reader if necessary
+                if isinstance(file_data, io.IOBase):
+                    return file_data
+                return BytesIO(file_data)
             else:
                 return self._authoritative_backend.read_file_handle(name)
         return returned_callable
