@@ -9,7 +9,7 @@ import tempfile
 from packaging import version
 from six.moves import urllib
 
-from slicedimage.urlpath import pathsplit
+from slicedimage.urlpath import pathjoin, pathsplit
 from .backends import DiskBackend, HttpBackend
 from ._collection import Collection
 from ._formats import ImageFormat
@@ -58,26 +58,35 @@ def resolve_path_or_url(path_or_url, allow_caching=True):
         raise
 
 
+def _resolve_absolute_url(absolute_url, allow_caching):
+    """
+    Given a string that is an absolute URL, return a tuple consisting of: a
+    :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of
+    the object.
+    """
+    splitted = pathsplit(absolute_url)
+    backend = infer_backend(splitted[0], allow_caching)
+    return backend, splitted[1], splitted[0]
+
+
 def resolve_url(name_or_url, baseurl=None, allow_caching=True):
     """
     Given a string that can either be a name or a fully qualified url, return a tuple consisting of:
     a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of
     the object.
 
-    If the string is a name and not a fully qualified url, then baseurl must be set.
+    If the string is a name and not a fully qualified url, then baseurl must be set.  If the string
+    is a fully qualified url, then baseurl is ignored.
     """
     try:
         # assume it's a fully qualified url.
-        splitted = pathsplit(name_or_url)
-        backend = infer_backend(splitted[0], allow_caching)
-        return backend, splitted[1], splitted[0]
+        return _resolve_absolute_url(name_or_url, allow_caching)
     except ValueError:
         if baseurl is None:
             # oh, we have no baseurl.  punt.
             raise
-        # it's not a fully qualified url.
-        backend = infer_backend(baseurl, allow_caching)
-        return backend, name_or_url, baseurl
+        absolute_url = pathjoin(baseurl, name_or_url)
+        return _resolve_absolute_url(absolute_url, allow_caching)
 
 
 class Reader(object):
