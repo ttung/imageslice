@@ -198,7 +198,10 @@ class v0_0_0(object):
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
                     tile.set_source_fh_contextmanager(
-                        backend.read_file_handle_callable(name), tile_format)
+                        backend.read_file_handle_callable(
+                            name,
+                            seekable=tile_format.requires_seekable_file_handles),
+                        tile_format)
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:

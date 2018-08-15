@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 class Backend(object):
-    def read_file_handle_callable(self, name, checksum_sha1=None):
+    def read_file_handle_callable(self, name, checksum_sha1=None, seekable=False):
         raise NotImplementedError()
 
     def read_file_handle(self, name, checksum_sha1=None):
