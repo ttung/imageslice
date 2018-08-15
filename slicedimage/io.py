@@ -9,7 +9,7 @@ import tempfile
 from packaging import version
 from six.moves import urllib
 
-from slicedimage.urlpath import pathsplit
+from slicedimage.urlpath import pathjoin, pathsplit
 from tqdm import tqdm
 from .backends import DiskBackend, HttpBackend, CachingBackend
 from ._collection import Collection
