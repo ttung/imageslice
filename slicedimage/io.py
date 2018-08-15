@@ -197,7 +197,11 @@ class v0_0_0(object):
                     )
                     seekable = True if tile_format == ImageFormat.NUMPY else False
                     tile.set_source_fh_contextmanager(
-                        backend.read_file_handle_callable(name, checksum_sha1=checksum, seekable=seekable), tile_format)
+                        backend.read_file_handle_callable(
+                            name,
+                            checksum_sha1=checksum,
+                            seekable=tile_format.requires_seekable_file_handles),
+                        tile_format)
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:

@@ -7,6 +7,15 @@ from slicedimage.urlpath import pathjoin
 from ._base import Backend
 
 
+class _BytesIOContextManager(BytesIO):
+    """Extension to BytesIO, but supports acting like a context manager."""
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
+
+
 class HttpBackend(Backend):
     def __init__(self, baseurl):
         self._baseurl = baseurl
