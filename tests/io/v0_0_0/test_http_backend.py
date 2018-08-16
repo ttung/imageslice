@@ -136,7 +136,6 @@ class TestHttpBackend(unittest.TestCase):
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, tile.numpy_array))
 
 
-
 def _unused_tcp_port():
     """
     Return an unused TCP port.
