@@ -194,7 +194,6 @@ class v0_0_0(object):
                         sha256=checksum,
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
-                    seekable = True if tile_format == ImageFormat.NUMPY else False
                     tile.set_source_fh_contextmanager(
                         backend.read_file_handle_callable(
                             name,
