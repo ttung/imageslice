@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import io
 
 from diskcache import Cache
-from six import BytesIO
+from io import BytesIO
 
 from ._base import Backend
 
