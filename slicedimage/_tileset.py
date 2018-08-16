@@ -29,7 +29,7 @@ class TileSet(object):
 
     def tiles(self, filter_fn=lambda _: True):
         """
-        Return the tiles in this tileset.  If a filter_fn is provided, only the tiles for which "
+        Return the tiles in this tileset.  If a filter_fn is provided, only the tiles for which
         filter_fn returns True are returned.
         """
         for tile in self._tiles:

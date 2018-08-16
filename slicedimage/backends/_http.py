@@ -29,12 +29,3 @@ class HttpBackend(Backend):
             req = requests.get(parsed, stream=True)
             return req.raw
         return returned_callable
-
-
-class _BytesIOContextManager(BytesIO):
-    """Extension to BytesIO, but supports acting like a context manager."""
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
