@@ -90,15 +90,18 @@ class TestCachingBackend(unittest.TestCase):
         )
         with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:
             fh.write(json.dumps(manifest))
+
         result = slicedimage.Reader.parse_doc(
             "tileset.json",
             "http://localhost:{port}/".format(port=self.port))
+
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
         # Now delete tile.tff from the http server and make sure Reader.parse_doc still works
         os.remove(os.path.join(self.tempdir.name, "tile.tiff"))
         result = slicedimage.Reader.parse_doc(
             "tileset.json",
             "http://localhost:{port}/".format(port=self.port))
+
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
 
 
