@@ -5,5 +5,4 @@ requests
 scikit-image
 six
 diskcache
-tqdm
 
