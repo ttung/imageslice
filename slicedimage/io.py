@@ -10,7 +10,6 @@ from packaging import version
 from six.moves import urllib
 
 from slicedimage.urlpath import pathjoin, pathsplit
-from tqdm import tqdm
 from .backends import DiskBackend, HttpBackend, CachingBackend
 from ._collection import Collection
 from ._formats import ImageFormat
@@ -174,7 +173,7 @@ class v0_0_0(object):
                     json_doc.get(TileSetKeys.EXTRAS, None),
                 )
 
-                for tile_doc in tqdm(json_doc[TileSetKeys.TILES]):
+                for tile_doc in json_doc[TileSetKeys.TILES]:
                     relative_path_or_url = tile_doc[TileKeys.FILE]
                     backend, name, _ = resolve_url(relative_path_or_url, baseurl)
 
