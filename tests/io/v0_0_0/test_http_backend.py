@@ -8,14 +8,13 @@ import numpy as np
 import requests
 import skimage.io
 
-from tests.utils.utility import unused_tcp_port, build_skeleton_manifest
 
 pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))  # noqa
 sys.path.insert(0, pkg_root)  # noqa
 
 import slicedimage
-from tests.utils import TemporaryDirectory
-from tests.utils.contextchild import ContextualChildProcess
+from tests.utils import build_skeleton_manifest, ContextualChildProcess, \
+    TemporaryDirectory, unused_tcp_port
 
 
 class TestHttpBackend(unittest.TestCase):
