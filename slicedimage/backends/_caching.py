@@ -6,7 +6,7 @@ from diskcache import Cache
 
 from ._base import Backend
 
-size_limit = 5e9
+SIZE_LIMIT = 5e9
 
 
 class CachingBackend(Backend):
@@ -14,7 +14,7 @@ class CachingBackend(Backend):
     def __init__(self, cacheroot, authoritative_backend):
         self._cacheroot = cacheroot
         self._authoritative_backend = authoritative_backend
-        self.cache = Cache(cacheroot, size_limit=int(size_limit))
+        self.cache = Cache(cacheroot, size_limit=int(SIZE_LIMIT))
 
     def read_file_handle_callable(self, name, checksum_sha256=None, seekable=False):
         def returned_callable():
