@@ -20,7 +20,7 @@ class HttpBackend(Backend):
     def __init__(self, baseurl):
         self._baseurl = baseurl
 
-    def read_file_handle_callable(self, name, checksum_sha1=None, seekable=False):
+    def read_file_handle_callable(self, name, checksum_sha256=None, seekable=False):
         def returned_callable():
             parsed = pathjoin(self._baseurl, name)
             if seekable:

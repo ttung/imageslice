@@ -1,4 +1,6 @@
 import contextlib
+import hashlib
+import io
 import json
 import os
 import random
@@ -11,6 +13,7 @@ import unittest
 import numpy as np
 import requests
 import skimage.io
+from PIL import Image
 
 import slicedimage
 
@@ -60,12 +63,13 @@ class TestCachingBackend(unittest.TestCase):
     def test_cached_backend(self):
         """
         Generate a tileset consisting of a single TIFF tile.  Deposit it where the HTTP server can
-        find the tileset, and fetch it.
+        find the tileset, and fetch it. Then delete the TIFF file and re-run Reader.parse_doc with the
+        same url and manifest to make sure we get the same results pulling the file from the cache
         """
         # write the tiff file
         data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
         skimage.io.imsave(os.path.join(self.tempdir.name, "tile.tiff"), data, plugin="tifffile")
-
+        checksum = hashlib.sha256(io.BytesIO(Image.open(os.path.join(self.tempdir.name, "tile.tiff"))).read()).hexdigest()
         manifest = build_skeleton_manifest()
         manifest['tiles'].append(
             {
@@ -85,7 +89,7 @@ class TestCachingBackend(unittest.TestCase):
                 },
                 "file": "tile.tiff",
                 "format": "tiff",
-                "sha256": random.getrandbits(128)
+                "sha256": checksum
             },
         )
         with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:
@@ -96,13 +100,14 @@ class TestCachingBackend(unittest.TestCase):
             "http://localhost:{port}/".format(port=self.port))
 
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
-        # Now delete tile.tff from the http server and make sure Reader.parse_doc still works
+
         os.remove(os.path.join(self.tempdir.name, "tile.tiff"))
         result = slicedimage.Reader.parse_doc(
             "tileset.json",
             "http://localhost:{port}/".format(port=self.port))
 
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
+
 
 
 def _unused_tcp_port():
@@ -118,6 +123,7 @@ class ContextualChildProcess(object):
     """
     Provides a context manager for wrapping a child process.
     """
+
     def __init__(self, *args, **kwargs):
         self.proc = subprocess.Popen(*args, **kwargs)
 

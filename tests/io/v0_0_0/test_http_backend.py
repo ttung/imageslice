@@ -85,9 +85,7 @@ class TestHttpBackend(unittest.TestCase):
                     "ch": 0,
                 },
                 "file": "tile.tiff",
-                "format": "tiff",
-                "sha256": random.getrandbits(128)
-
+                "format": "tiff"
             },
         )
         with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:

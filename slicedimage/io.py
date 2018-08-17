@@ -10,7 +10,7 @@ from packaging import version
 from six.moves import urllib
 
 from slicedimage.urlpath import pathjoin, pathsplit
-from .backends import DiskBackend, HttpBackend, CachingBackend
+from .backends import CachingBackend, DiskBackend, HttpBackend
 from ._collection import Collection
 from ._formats import ImageFormat
 from ._tile import Tile
@@ -27,13 +27,13 @@ def infer_backend(baseurl, allow_caching=True):
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
         if allow_caching:
-            backend = CachingBackend("~/tmp", backend)
+            backend = CachingBackend(os.path.expanduser("~/.starfish-cache"), backend)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:
         raise ValueError(
-                "Unable to infer backend for url {}, please verify that baseurl points to a valid "
-                "directory or web address".format(baseurl))
+            "Unable to infer backend for url {}, please verify that baseurl points to a valid "
+            "directory or web address".format(baseurl))
     return backend
 
 
@@ -197,18 +197,18 @@ class v0_0_0(object):
                     tile.set_source_fh_contextmanager(
                         backend.read_file_handle_callable(
                             name,
-                            checksum_sha1=checksum,
+                            checksum_sha256=checksum,
                             seekable=tile_format.requires_seekable_file_handles),
                         tile_format)
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)
             else:
                 raise ValueError(
-                        "JSON doc does not appear to be a collection partition or a tileset "
-                        "partition. JSON doc must contain either a {contents} field pointing to a "
-                        "tile manifest, or it must contain a {tiles} field that specifies a set of "
-                        "tiles.".format(
-                            contents=CollectionKeys.CONTENTS, tiles=TileSetKeys.TILES))
+                    "JSON doc does not appear to be a collection partition or a tileset "
+                    "partition. JSON doc must contain either a {contents} field pointing to a "
+                    "tile manifest, or it must contain a {tiles} field that specifies a set of "
+                    "tiles.".format(
+                        contents=CollectionKeys.CONTENTS, tiles=TileSetKeys.TILES))
 
             return result
 

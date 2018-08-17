@@ -9,7 +9,7 @@ class DiskBackend(Backend):
     def __init__(self, basedir):
         self._basedir = basedir
 
-    def read_file_handle_callable(self, name, checksum_sha1=None, seekable=False):
+    def read_file_handle_callable(self, name, checksum_sha256=None, seekable=False):
         return lambda: open(os.path.join(self._basedir, name), "rb")
 
     def write_file_handle(self, name=None):

@@ -3,29 +3,32 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import io
 
 from diskcache import Cache
-from io import BytesIO
 
 from ._base import Backend
 
+size_limit = 5e9
+
 
 class CachingBackend(Backend):
+
     def __init__(self, cacheroot, authoritative_backend):
         self._cacheroot = cacheroot
         self._authoritative_backend = authoritative_backend
-        self.cache = Cache(cacheroot, size_limit=int(5e9))
+        self.cache = Cache(cacheroot, size_limit=int(size_limit))
 
-    def read_file_handle_callable(self, name, checksum_sha1=None, seekable=False):
+    def read_file_handle_callable(self, name, checksum_sha256=None, seekable=False):
         def returned_callable():
-            if checksum_sha1:
-                if not self.cache.get(checksum_sha1):
+            if checksum_sha256:
+                if checksum_sha256 not in self.cache:
                     sfh = self._authoritative_backend.read_file_handle(name)
-                    self.cache.set(checksum_sha1, sfh.data)
-                file_data = self.cache.read(checksum_sha1)
-                # The DiskCache library returns the cache data as bytes instead of a buffered reader
-                # If the data is small enough check what was returned and convert to a reader
+                    self.cache.set(checksum_sha256, sfh.read())
+                file_data = self.cache.read(checksum_sha256)
+                # If the data is small enough, the DiskCache library returns the cache data
+                # as bytes instead of a buffered reader.
+                # In that case, we want to wrap it in a file-like object.
                 if isinstance(file_data, io.IOBase):
                     return file_data
-                return BytesIO(file_data)
+                return io.BytesIO(file_data)
             else:
                 return self._authoritative_backend.read_file_handle(name)
         return returned_callable
