@@ -1,8 +1,5 @@
-import contextlib
 import json
 import os
-import socket
-import subprocess
 import sys
 import time
 import unittest
@@ -11,11 +8,13 @@ import numpy as np
 import requests
 import skimage.io
 
+
 pkg_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))  # noqa
 sys.path.insert(0, pkg_root)  # noqa
 
 import slicedimage
-from tests.utils import TemporaryDirectory
+from tests.utils import build_skeleton_manifest, ContextualChildProcess, \
+    TemporaryDirectory, unused_tcp_port
 
 
 class TestHttpBackend(unittest.TestCase):
@@ -23,7 +22,7 @@ class TestHttpBackend(unittest.TestCase):
         self.contexts = []
         self.tempdir = TemporaryDirectory()
         self.contexts.append(self.tempdir)
-        self.port = _unused_tcp_port()
+        self.port = unused_tcp_port()
 
         if sys.version_info[0] == 2:
             module = "SimpleHTTPServer"
@@ -131,50 +130,6 @@ class TestHttpBackend(unittest.TestCase):
             "http://localhost:{port}/".format(port=self.port))
 
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, tile.numpy_array))
-
-
-def _unused_tcp_port():
-    """
-    Return an unused TCP port.
-    """
-    with contextlib.closing(socket.socket()) as sock:
-        sock.bind(('127.0.0.1', 0))
-        return sock.getsockname()[1]
-
-
-class ContextualChildProcess(object):
-    """
-    Provides a context manager for wrapping a child process.
-    """
-    def __init__(self, *args, **kwargs):
-        self.proc = subprocess.Popen(*args, **kwargs)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.proc.terminate()
-        self.proc.wait()
-
-
-def build_skeleton_manifest():
-    """
-    Returns a 0.0.0 formatted manifest with no tiles.
-    """
-    return {
-        "version": "0.0.0",
-        "dimensions": [
-            "x",
-            "y",
-            "hyb",
-            "ch"
-        ],
-        "shape": {
-            "hyb": 1,
-            "ch": 1
-        },
-        "tiles": []
-    }
 
 
 if __name__ == "__main__":

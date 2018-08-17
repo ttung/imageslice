@@ -32,9 +32,7 @@ class TileSet(object):
         Return the tiles in this tileset.  If a filter_fn is provided, only the tiles for which
         filter_fn returns True are returned.
         """
-        for tile in self._tiles:
-            if filter_fn(tile):
-                yield tile
+        return list(filter(filter_fn, self._tiles))
 
     def get_dimension_shape(self, dimension_name):
         return self.shape[dimension_name]
