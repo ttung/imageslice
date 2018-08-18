@@ -19,16 +19,21 @@ class CachingBackend(Backend):
     def read_file_handle_callable(self, name, checksum_sha256=None, seekable=False):
         def returned_callable():
             if checksum_sha256:
-                if checksum_sha256 not in self.cache:
+                try:
+                    file_data = self.cache.read(checksum_sha256)
+                except KeyError:
+                    # not in cache :(
                     sfh = self._authoritative_backend.read_file_handle(name)
-                    self.cache.set(checksum_sha256, sfh.read())
-                file_data = self.cache.read(checksum_sha256)
-                # If the data is small enough, the DiskCache library returns the cache data
-                # as bytes instead of a buffered reader.
-                # In that case, we want to wrap it in a file-like object.
-                if isinstance(file_data, io.IOBase):
-                    return file_data
-                return io.BytesIO(file_data)
+                    file_data = sfh.read()
+                    self.cache.set(checksum_sha256, file_data)
+                    return io.BytesIO(file_data)
+                else:
+                    # If the data is small enough, the DiskCache library returns the cache data
+                    # as bytes instead of a buffered reader.
+                    # In that case, we want to wrap it in a file-like object.
+                    if isinstance(file_data, io.IOBase):
+                        return file_data
+                    return io.BytesIO(file_data)
             else:
                 return self._authoritative_backend.read_file_handle(name)
         return returned_callable
