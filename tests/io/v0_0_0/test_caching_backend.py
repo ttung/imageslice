@@ -64,8 +64,10 @@ class TestCachingBackend(unittest.TestCase):
         """
         # write the tiff file
         data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
-        skimage.io.imsave(os.path.join(self.tempdir.name, "tile.tiff"), data, plugin="tifffile")
-        checksum = hashlib.sha256(data).hexdigest()
+        file_path = os.path.join(self.tempdir.name, "tile.tiff")
+        skimage.io.imsave(file_path, data, plugin="tifffile")
+        with open(file_path, "rb") as fh:
+            checksum = hashlib.sha256(fh.read()).hexdigest()
         manifest = build_skeleton_manifest()
         manifest['tiles'].append(
             {
