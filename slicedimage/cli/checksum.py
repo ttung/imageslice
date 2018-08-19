@@ -34,13 +34,16 @@ class ChecksumCommand(CliCommand):
             args.out_path,
             pretty=args.pretty,
             tile_opener=fake_file_opener,
-            tile_writer=null_writer)
+            tile_writer=identity_writer)
 
 
 def fake_file_opener(partition_path, tile, ext):
-    class fake_handle(object):
+    class null_file_handle(object):
         def __init__(self, name):
             self.name = name
+
+        def write(self, data):
+            return len(data)
 
         def __enter__(self):
             return self
@@ -48,8 +51,11 @@ def fake_file_opener(partition_path, tile, ext):
         def __exit__(self, exc_type, exc_val, exc_tb):
             pass
 
-    return fake_handle(tile._file_or_url)
+    return null_file_handle(tile._file_or_url)
 
 
-def null_writer(tile, fh):
-    pass
+def identity_writer(tile, fh):
+    assert tile._source_fh_contextmanager is not None
+    with tile._source_fh_contextmanager() as sfh:
+        fh.write(sfh.read())
+    return tile.tile_format
