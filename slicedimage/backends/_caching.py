@@ -1,6 +1,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import hashlib
 import io
+import warnings
 
 from diskcache import Cache
 
@@ -25,7 +27,15 @@ class CachingBackend(Backend):
                     # not in cache :(
                     sfh = self._authoritative_backend.read_file_handle(name)
                     file_data = sfh.read()
-                    self.cache.set(checksum_sha256, file_data)
+                    # TODO: consider removing this if we land a more generalized solution that
+                    # protects against corruption regardless of backend.
+                    sha256 = hashlib.sha256(file_data).hexdigest()
+                    if sha256 != checksum_sha256:
+                        warnings.warn(
+                            "Checksum of tile data does not match the manifest checksum!  Not "
+                            "writing to cache")
+                    else:
+                        self.cache.set(checksum_sha256, file_data)
                     return io.BytesIO(file_data)
                 else:
                     # If the data is small enough, the DiskCache library returns the cache data
