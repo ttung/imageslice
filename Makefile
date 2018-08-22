@@ -2,9 +2,6 @@ SHELL := /bin/bash
 
 MODULES=slicedimage tests
 
-lint:
-	flake8 $(MODULES)
-
 test_srcs := $(shell find tests -name 'test_*.py')
 
 test: SLICEDIMAGE_COVERAGE := 1
@@ -18,5 +15,8 @@ $(test_srcs): %.py :
 	else \
 		python -m unittest $(subst /,.,$*); \
 	fi
+
+lint:
+	flake8 $(MODULES)
 
 .PHONY : $(test_srcs)
