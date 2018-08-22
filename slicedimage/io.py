@@ -90,9 +90,9 @@ class Reader(object):
     @staticmethod
     def parse_doc(name_or_url, baseurl):
         backend, name, baseurl = resolve_url(name_or_url, baseurl)
-        fh = backend.read_file_handle(name)
-        reader = codecs.getreader("utf-8")
-        json_doc = json.load(reader(fh))
+        with backend.read_contextmanager(name) as fh:
+            reader = codecs.getreader("utf-8")
+            json_doc = json.load(reader(fh))
         doc_version = version.parse(json_doc[CommonPartitionKeys.VERSION])
 
         try:
@@ -195,7 +195,7 @@ class v0_0_0(object):
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
                     tile.set_source_fh_contextmanager(
-                        backend.read_file_handle_callable(
+                        backend.read_contextmanager(
                             name,
                             checksum_sha256=checksum,
                             seekable=tile_format.requires_seekable_file_handles),

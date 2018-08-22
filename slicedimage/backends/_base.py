@@ -2,11 +2,8 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 class Backend(object):
-    def read_file_handle_callable(self, name, checksum_sha256=None, seekable=False):
+    def read_contextmanager(self, name, checksum_sha256=None, seekable=False):
         raise NotImplementedError()
-
-    def read_file_handle(self, name, checksum_sha1=None):
-        return self.read_file_handle_callable(name, checksum_sha1)()
 
     def write_file_handle(self, name):
         raise NotImplementedError()

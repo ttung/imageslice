@@ -56,6 +56,6 @@ def fake_file_opener(partition_path, tile, ext):
 
 def identity_writer(tile, fh):
     assert tile._source_fh_contextmanager is not None
-    with tile._source_fh_contextmanager() as sfh:
+    with tile._source_fh_contextmanager as sfh:
         fh.write(sfh.read())
     return tile.tile_format
