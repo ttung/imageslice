@@ -2,14 +2,8 @@
 
 import os
 import setuptools
-import sys
 
 install_requires = [line.rstrip() for line in open(os.path.join(os.path.dirname(__file__), "requirements.txt"))]
-
-if sys.version_info >= (3, 4):
-    # Remove the dependency on enum34
-    # on platforms that have it natively.
-    install_requires.remove("enum34")
 
 setuptools.setup(
     name="slicedimage",
