@@ -88,8 +88,8 @@ def resolve_url(name_or_url, baseurl=None, allow_caching=True):
 
 class Reader(object):
     @staticmethod
-    def parse_doc(name_or_url, baseurl):
-        backend, name, baseurl = resolve_url(name_or_url, baseurl)
+    def parse_doc(name_or_url, baseurl, allow_caching=True):
+        backend, name, baseurl = resolve_url(name_or_url, baseurl, allow_caching)
         with backend.read_contextmanager(name) as fh:
             reader = codecs.getreader("utf-8")
             json_doc = json.load(reader(fh))
@@ -104,9 +104,9 @@ class Reader(object):
             raise KeyError(
                 "JSON document missing `version` field. Please specify the file format version.")
 
-        return parser.parse(json_doc, baseurl)
+        return parser.parse(json_doc, baseurl, allow_caching)
 
-    def parse(self, json_doc, baseurl):
+    def parse(self, json_doc, baseurl, allow_caching):
         raise NotImplementedError()
 
 
@@ -153,7 +153,7 @@ class v0_0_0(object):
     VERSION = "0.0.0"
 
     class Reader(Reader):
-        def parse(self, json_doc, baseurl):
+        def parse(self, json_doc, baseurl, allow_caching):
             if CollectionKeys.CONTENTS in json_doc:
                 # this is a Collection
                 result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
@@ -175,7 +175,7 @@ class v0_0_0(object):
 
                 for tile_doc in json_doc[TileSetKeys.TILES]:
                     relative_path_or_url = tile_doc[TileKeys.FILE]
-                    backend, name, _ = resolve_url(relative_path_or_url, baseurl)
+                    backend, name, _ = resolve_url(relative_path_or_url, baseurl, allow_caching)
 
                     tile_format_str = tile_doc.get(TileKeys.TILE_FORMAT, None)
                     if tile_format_str:
