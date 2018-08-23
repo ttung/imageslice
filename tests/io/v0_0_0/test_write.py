@@ -1,9 +1,10 @@
 import codecs
 import json
-import numpy
 import os
 import tempfile
 import unittest
+
+import numpy as np
 
 import slicedimage
 from tests.utils import TemporaryDirectory
@@ -32,7 +33,7 @@ class TestWrite(unittest.TestCase):
                         'ch': ch,
                     },
                 )
-                tile.numpy_array = numpy.zeros((100, 100))
+                tile.numpy_array = np.zeros((100, 100))
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
@@ -58,7 +59,7 @@ class TestWrite(unittest.TestCase):
 
                     self.assertEqual(len(tiles), 1)
 
-                    expected = numpy.zeros((100, 100))
+                    expected = np.zeros((100, 100))
                     expected[hyb, ch] = 1
 
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())
@@ -83,7 +84,7 @@ class TestWrite(unittest.TestCase):
                         'ch': ch,
                     },
                 )
-                tile.numpy_array = numpy.zeros((100, 100))
+                tile.numpy_array = np.zeros((100, 100))
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
         collection = slicedimage.Collection()
@@ -111,7 +112,7 @@ class TestWrite(unittest.TestCase):
 
                     self.assertEqual(len(tiles), 1)
 
-                    expected = numpy.zeros((100, 100))
+                    expected = np.zeros((100, 100))
                     expected[hyb, ch] = 1
 
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())

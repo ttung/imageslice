@@ -10,9 +10,9 @@ def skimage_reader():
 
 def numpy_reader():
     # lazy load numpy
-    import numpy
+    import numpy as np
 
-    return numpy.load
+    return np.load
 
 
 class ImageFormat(enum.Enum):
