@@ -1,10 +1,12 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import hashlib
+
 import requests
 from io import BytesIO
 
 from slicedimage.urlpath import pathjoin
-from ._base import Backend
+from ._base import Backend, CalculateFileObjectChecksum, ChecksumValidationError
 
 
 class HttpBackend(Backend):
@@ -26,10 +28,18 @@ class _UrlContextManager(object):
     def __enter__(self):
         if self.seekable:
             req = requests.get(self.url)
+            if self.checksum_sha256 is not None:
+                hasher = hashlib.sha256()
+                hasher.update(req.content)
+                calculated_checksum = hasher.hexdigest()
+                if calculated_checksum != self.checksum_sha256:
+                    raise ChecksumValidationError(
+                        "calculated checksum ({}) does not match expected checksum ({})".format(
+                            calculated_checksum, self.checksum_sha256))
             self.handle = BytesIO(req.content)
         else:
             req = requests.get(self.url, stream=True)
-            self.handle = req.raw
+            self.handle = CalculateFileObjectChecksum(req.raw, self.checksum_sha256)
         return self.handle.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
