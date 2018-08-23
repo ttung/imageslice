@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import os
 
-from ._base import Backend
+from ._base import Backend, verify_checksum
 
 
 class DiskBackend(Backend):
@@ -24,6 +24,7 @@ class _FileLikeContextManager(object):
 
     def __enter__(self):
         self.handle = open(self.path, "rb")
+        verify_checksum(self.handle, self.checksum_sha256)
         return self.handle
 
     def __exit__(self, exc_type, exc_val, exc_tb):

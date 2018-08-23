@@ -1,12 +1,10 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import hashlib
 import io
-import warnings
 
 from diskcache import Cache
 
-from ._base import Backend
+from ._base import Backend, verify_checksum
 
 SIZE_LIMIT = 5e9
 CACHE_VERSION = "v0"
@@ -46,16 +44,11 @@ class _CachingBackendContextManager(object):
             # not in cache :(
             with self.authoritative_backend.read_contextmanager(self.name) as sfh:
                 file_data = sfh.read()
-            # TODO: consider removing this if we land a more generalized solution that
-            # protects against corruption regardless of backend.
-            sha256 = hashlib.sha256(file_data).hexdigest()
-            if sha256 != self.checksum_sha256:
-                warnings.warn(
-                    "Checksum of tile data does not match the manifest checksum!  Not "
-                    "writing to cache")
-            else:
-                self.cache.set(cache_key, file_data)
+            self.cache.set(cache_key, file_data)
             self.handle = io.BytesIO(file_data)
+
+            # we are directly returning the data from the authoritative backend, which we assume
+            # is verifying the checksum, so we don't layer on another checksum calculation.
         else:
             # If the data is small enough, the DiskCache library returns the cache data
             # as bytes instead of a buffered reader.
@@ -64,6 +57,7 @@ class _CachingBackendContextManager(object):
                 self.handle = file_data
             else:
                 self.handle = io.BytesIO(file_data)
+            verify_checksum(self.handle, self.checksum_sha256)
 
         return self.handle.__enter__()
 

@@ -4,7 +4,7 @@ import requests
 from io import BytesIO
 
 from slicedimage.urlpath import pathjoin
-from ._base import Backend
+from ._base import Backend, verify_checksum
 
 
 class HttpBackend(Backend):
@@ -25,6 +25,7 @@ class _UrlContextManager(object):
     def __enter__(self):
         req = requests.get(self.url)
         self.handle = BytesIO(req.content)
+        verify_checksum(self.handle, self.checksum_sha256)
         return self.handle.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
