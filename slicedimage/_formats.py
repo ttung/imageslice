@@ -17,19 +17,17 @@ def numpy_reader():
 
 class ImageFormat(enum.Enum):
     TIFF = (skimage_reader, "tiff", {"tif"})
-    NUMPY = (numpy_reader, "npy", {}, True)
+    NUMPY = (numpy_reader, "npy", {})
 
     def __init__(
             self,
             reader_func,
             file_ext,
             alternate_extensions,
-            requires_seekable_file_handles=False,
     ):
         self._reader_func = reader_func
         self._file_ext = file_ext
         self._alternate_extensions = set() if alternate_extensions is None else alternate_extensions
-        self._requires_seekable_file_handles = requires_seekable_file_handles
 
     @staticmethod
     def find_by_extension(extension):
@@ -49,11 +47,3 @@ class ImageFormat(enum.Enum):
     @property
     def file_ext(self):
         return self._file_ext
-
-    @property
-    def requires_seekable_file_handles(self):
-        """
-        The reader method of some file formats require the ability to seek inside the file.  If this
-        is True, we will buffer the data so it is possible to seek.
-        """
-        return self._requires_seekable_file_handles

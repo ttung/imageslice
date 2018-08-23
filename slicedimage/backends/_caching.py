@@ -18,13 +18,13 @@ class CachingBackend(Backend):
         self._authoritative_backend = authoritative_backend
         self._cache = Cache(cacheroot, size_limit=int(SIZE_LIMIT))
 
-    def read_contextmanager(self, name, checksum_sha256=None, seekable=False):
+    def read_contextmanager(self, name, checksum_sha256=None):
         if checksum_sha256 is not None:
             return _CachingBackendContextManager(
                 self._authoritative_backend, self._cache, name, checksum_sha256)
         else:
             return self._authoritative_backend.read_contextmanager(
-                name, checksum_sha256, seekable=seekable)
+                name, checksum_sha256)
 
     def write_file_handle(self, name):
         return self._authoritative_backend.write_file_handle(name)

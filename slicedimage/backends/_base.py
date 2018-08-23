@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 class Backend(object):
-    def read_contextmanager(self, name, checksum_sha256=None, seekable=False):
+    def read_contextmanager(self, name, checksum_sha256=None):
         raise NotImplementedError()
 
     def write_file_handle(self, name):

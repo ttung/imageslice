@@ -197,8 +197,7 @@ class v0_0_0(object):
                     tile.set_source_fh_contextmanager(
                         backend.read_contextmanager(
                             name,
-                            checksum_sha256=checksum,
-                            seekable=tile_format.requires_seekable_file_handles),
+                            checksum_sha256=checksum),
                         tile_format)
                     tile._file_or_url = relative_path_or_url
                     result.add_tile(tile)

@@ -9,7 +9,7 @@ class DiskBackend(Backend):
     def __init__(self, basedir):
         self._basedir = basedir
 
-    def read_contextmanager(self, name, checksum_sha256=None, seekable=False):
+    def read_contextmanager(self, name, checksum_sha256=None):
         return _FileLikeContextManager(os.path.join(self._basedir, name), checksum_sha256)
 
     def write_file_handle(self, name=None):
