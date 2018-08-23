@@ -91,7 +91,9 @@ class TestHttpBackend(unittest.TestCase):
 
         result = slicedimage.Reader.parse_doc(
             "tileset.json",
-            "http://localhost:{port}/".format(port=self.port))
+            "http://localhost:{port}/".format(port=self.port),
+            allow_caching=False,
+        )
 
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
 
@@ -127,7 +129,9 @@ class TestHttpBackend(unittest.TestCase):
 
         result = slicedimage.Reader.parse_doc(
             "tileset.json",
-            "http://localhost:{port}/".format(port=self.port))
+            "http://localhost:{port}/".format(port=self.port),
+            allow_caching=False,
+        )
 
         self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, tile.numpy_array))
 
