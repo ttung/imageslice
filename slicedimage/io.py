@@ -256,12 +256,8 @@ class v0_0_0(object):
                     }
 
                     with tile_opener(path, tile, ImageFormat.NUMPY.file_ext) as tile_fh:
-                        if tile.sha256 is None:
-                            hasher_fh = HashFile(hashlib.sha256)
-                            writer_fh = TeeWritableFileObject(tile_fh, hasher_fh)
-                        else:
-                            hasher_fh = None
-                            writer_fh = tile_fh
+                        hasher_fh = HashFile(hashlib.sha256)
+                        writer_fh = TeeWritableFileObject(tile_fh, hasher_fh)
                         tile_format = tile_writer(tile, writer_fh)
                         tiledoc[TileKeys.FILE] = os.path.basename(tile_fh.name)
                         if hasher_fh is not None:

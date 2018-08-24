@@ -1,14 +1,15 @@
 import codecs
+import hashlib
 import json
 import os
 import tempfile
 import unittest
 
 import numpy as np
+import skimage.io
 
 import slicedimage
-from tests.utils import TemporaryDirectory
-
+from tests.utils import TemporaryDirectory, build_skeleton_manifest
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 
@@ -117,3 +118,65 @@ class TestWrite(unittest.TestCase):
 
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())
                     self.assertIsNotNone(tiles[0].sha256)
+
+    def test_checksum_on_write(self):
+        """
+        Generate a tileset consisting of a single TIFF tile.  Load it and then write it back out
+        as a numpy tile, which should be written with different checksums.  Then verify that the
+        numpy version can load without an error.
+        """
+        # write the tiff file
+        with TemporaryDirectory() as tempdir:
+            data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
+            file_path = os.path.join(tempdir, "tile.tiff")
+            skimage.io.imsave(file_path, data, plugin="tifffile")
+            with open(file_path, "rb") as fh:
+                checksum = hashlib.sha256(fh.read()).hexdigest()
+
+            manifest = build_skeleton_manifest()
+            manifest['tiles'].append(
+                {
+                    "coordinates": {
+                        "x": [
+                            0.0,
+                            0.0001,
+                        ],
+                        "y": [
+                            0.0,
+                            0.0001,
+                        ]
+                    },
+                    "indices": {
+                        "hyb": 0,
+                        "ch": 0,
+                    },
+                    "file": "tile.tiff",
+                    "format": "tiff",
+                    "sha256": checksum,
+                },
+            )
+            with open(os.path.join(tempdir, "tileset.json"), "w") as fh:
+                fh.write(json.dumps(manifest))
+
+            image = slicedimage.Reader.parse_doc(
+                "tileset.json",
+                "file://{}".format(tempdir),
+                allow_caching=False,
+            )
+
+            with TemporaryDirectory() as output_tempdir, \
+                    tempfile.NamedTemporaryFile(
+                        suffix=".json", dir=output_tempdir) as partition_file:
+                partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
+                    image, partition_file.name)
+
+                writer = codecs.getwriter("utf-8")
+                json.dump(partition_doc, writer(partition_file))
+                partition_file.flush()
+
+                basename = os.path.basename(partition_file.name)
+                baseurl = "file://{}".format(os.path.dirname(partition_file.name))
+
+                loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+
+                loaded.tiles()[0]._load()
