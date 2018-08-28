@@ -72,7 +72,7 @@ class Tile(object):
         """
         if self._source_fh_contextmanager is not None:
             assert self._numpy_array is None
-            with self._source_fh_contextmanager as src_fh:
+            with self._source_fh_contextmanager() as src_fh:
                 data = src_fh.read()
                 self._numpy_array = self.tile_format.reader_func(BytesIO(data))
                 dst_fh.write(data)
