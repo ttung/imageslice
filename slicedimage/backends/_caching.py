@@ -7,7 +7,7 @@ from diskcache import Cache
 from ._base import Backend, verify_checksum
 
 SIZE_LIMIT = 5e9
-CACHE_VERSION = "v0"
+CACHE_VERSION = "v1"
 
 
 class CachingBackend(Backend):
@@ -42,7 +42,8 @@ class _CachingBackendContextManager(object):
             file_data = self.cache.read(cache_key)
         except KeyError:
             # not in cache :(
-            with self.authoritative_backend.read_contextmanager(self.name) as sfh:
+            with self.authoritative_backend.read_contextmanager(
+                    self.name, self.checksum_sha256) as sfh:
                 file_data = sfh.read()
             self.cache.set(cache_key, file_data)
             self.handle = io.BytesIO(file_data)
