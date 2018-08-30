@@ -4,6 +4,7 @@ import codecs
 import hashlib
 import json
 import os
+import re
 import tempfile
 
 from packaging import version
@@ -219,7 +220,8 @@ class v0_0_0(object):
                 pretty=False,
                 partition_path_generator=Writer.default_partition_path_generator,
                 tile_opener=Writer.default_tile_opener,
-                tile_writer=Writer.default_tile_writer):
+                tile_writer=Writer.default_tile_writer,
+                fov_index=None):
             json_doc = {
                 CommonPartitionKeys.VERSION: v0_0_0.VERSION,
                 CommonPartitionKeys.EXTRAS: partition.extras,
@@ -227,6 +229,9 @@ class v0_0_0(object):
             if isinstance(partition, Collection):
                 json_doc[CollectionKeys.CONTENTS] = dict()
                 for partition_name, partition in partition._partitions.items():
+                    if fov_index is None:
+                        fov_index = int(re.match(".*?(\d+)", partition_name).group(1))
+                    json_doc["fov"] = fov_index
                     partition_path = partition_path_generator(path, partition_name)
                     Writer.write_to_path(
                         partition, partition_path, pretty,
@@ -238,9 +243,12 @@ class v0_0_0(object):
                         partition_path)
                 return json_doc
             elif isinstance(partition, TileSet):
+                if fov_index is None:
+                    fov_index = 0
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
                 json_doc[TileSetKeys.SHAPE] = partition.shape
                 json_doc[TileSetKeys.TILES] = []
+                json_doc["fov"] = fov_index
 
                 if partition.default_tile_shape is not None:
                     json_doc[TileSetKeys.DEFAULT_TILE_SHAPE] = partition.default_tile_shape

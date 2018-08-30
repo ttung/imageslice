@@ -43,6 +43,7 @@ class TestWrite(unittest.TestCase):
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
                 image, partition_file.name)
             writer = codecs.getwriter("utf-8")
+            assert "fov" in partition_doc
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
 
@@ -95,6 +96,7 @@ class TestWrite(unittest.TestCase):
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
                 collection, partition_file.name)
+            assert "fov" in partition_doc
             writer = codecs.getwriter("utf-8")
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
