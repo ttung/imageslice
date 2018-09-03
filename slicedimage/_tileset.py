@@ -21,6 +21,14 @@ class TileSet(object):
 
         self._discrete_dimensions = set()
 
+    def __repr__(self):
+        r = self.shape['r']
+        c = self.shape['c']
+        z = self.shape['z']
+        y = self.default_tile_shape[1]
+        x = self.default_tile_shape[0]
+        return f'<slicedimage.TileSet (r: {r}, c: {c}, z: {z}, y: {y}, x: {x})>'
+
     def validate(self):
         raise NotImplementedError()
 
