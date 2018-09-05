@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import io
+from threading import Lock
 
 from diskcache import Cache
 
@@ -11,10 +12,15 @@ CACHE_VERSION = "v1"
 
 
 class CachingBackend(Backend):
+    _LOCK = Lock()
+    _CACHE = {}
+
     def __init__(self, cacheroot, authoritative_backend):
-        self._cacheroot = cacheroot
+        with CachingBackend._LOCK:
+            if cacheroot not in CachingBackend._CACHE:
+                CachingBackend._CACHE[cacheroot] = Cache(cacheroot, size=int(SIZE_LIMIT))
+            self._cache = CachingBackend._CACHE[cacheroot]
         self._authoritative_backend = authoritative_backend
-        self._cache = Cache(cacheroot, size_limit=int(SIZE_LIMIT))
 
     def read_contextmanager(self, name, checksum_sha256=None):
         if checksum_sha256 is not None:
