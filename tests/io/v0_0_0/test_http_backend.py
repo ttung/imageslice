@@ -8,6 +8,7 @@ import unittest
 import numpy as np
 import requests
 import skimage.io
+from requests import HTTPError
 
 import slicedimage
 from slicedimage.backends import ChecksumValidationError
@@ -195,6 +196,17 @@ class TestHttpBackend(unittest.TestCase):
         else:
             with self.assertRaises(ChecksumValidationError):
                 result.tiles()[0]._load()
+
+    def test_error(self):
+        """
+        Verifies that we raise an exception when we fail to find a file.
+        """
+        with self.assertRaises(HTTPError):
+            slicedimage.Reader.parse_doc(
+                "tileset.json",
+                "http://localhost:{port}/".format(port=self.port),
+                allow_caching=False,
+            )
 
 
 if __name__ == "__main__":

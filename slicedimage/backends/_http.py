@@ -23,8 +23,9 @@ class _UrlContextManager(object):
         self.handle = None
 
     def __enter__(self):
-        req = requests.get(self.url)
-        self.handle = BytesIO(req.content)
+        resp = requests.get(self.url)
+        resp.raise_for_status()
+        self.handle = BytesIO(resp.content)
         verify_checksum(self.handle, self.checksum_sha256)
         return self.handle.__enter__()
 
