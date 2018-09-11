@@ -26,20 +26,28 @@ class HashWrapper(object):
         return self
 
     def __exit__(self, *args, **kwargs):
-        self.tile._actual_sha256 = self.hasher.hexdigest()
+        if self.hasher:
+            self.tile._actual_sha256 = self.hasher.hexdigest()
 
     def read(self, *args, **kwargs):
         buf = self.fh.read(*args, **kwargs)
-        self.hasher.update(buf)
+        if self.hasher:
+            self.hasher.update(buf)
         return buf
 
-    def seek(self, offset):
+    def seek(self, offset, *args, **kwargs):
         # We assume that this is to reset the handle.
         # Any value other than than zero is not supported
         # since the next read would invalidate the hash.
-        assert offset == 0
-        self.hasher = self.Hasher()
-        return self.fh.seek(offset)
+        if offset != 0:
+            self.hasher = None
+        return self.fh.seek(offset, *args, **kwargs)
+
+    def tell(self, *args, **kwargs):
+        return self.fh.tell(*args, **kwargs)
+
+    def close(self, *args, **kwargs):
+        return self.fh.close(*args, **kwargs)
 
 
 class Tile(object):
@@ -125,5 +133,6 @@ class Tile(object):
         A missing expected sha256 value is considered non-fatal.
         """
         self._load()
-        if self.sha256:
-            assert self.sha256 == self._actual_sha256
+        if self.sha256 and self._actual_sha256:
+            assert self.sha256 == self._actual_sha256, \
+                "%s != %s" % (self.sha256, self._actual_sha256)
