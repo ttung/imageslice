@@ -1,9 +1,36 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
+from hashlib import sha256
 
 from six import BytesIO
 
 from ._formats import ImageFormat
 from ._typeformatting import format_tile_dimensions
+
+
+
+class HashWrapper(object):
+    """
+    Simple context manager which wraps the read() method.
+    The return value from each call to the underlying
+    file-like object is passed to the update method of
+    the given hash method.
+    """
+
+    def __init__(self, tile, fh, hash_method=sha256):
+        self.tile = tile
+        self.fh = fh
+        self.hasher = hash_method()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args, **kwargs):
+        self.tile._actual_sha256 = self.hasher.hexdigest()
+
+    def read(self, *args, **kwargs):
+        buf = self.fh.read(*args, **kwargs)
+        self.hasher.update(buf)
+        return buf
 
 
 class Tile(object):
@@ -18,13 +45,15 @@ class Tile(object):
         self._source_fh_contextmanager = None
         self._numpy_array = None
         self._name_or_url = None
+        self._actual_sha256 = None
 
     def _load(self):
         if self._source_fh_contextmanager is not None:
             assert self._numpy_array is None, ("Inconsistent state.  Tile should only have one "
                                                "data source.")
             with self._source_fh_contextmanager as src_fh:
-                self._numpy_array = self.tile_format.reader_func(src_fh)
+                with HashWrapper(self, src_fh) as wrapped_fh:
+                    self._numpy_array = self.tile_format.reader_func(wrapped_fh)
             self._source_fh_contextmanager = None
             self.tile_format = ImageFormat.NUMPY
             self.tile_shape = self.numpy_array.shape
@@ -80,3 +109,12 @@ class Tile(object):
             self.tile_format = ImageFormat.NUMPY
         else:
             raise RuntimeError("copy can only be called on a tile that hasn't been decoded.")
+
+    def validate(self):
+        """
+        Assert the calculated sha256 matches the one provided on object creation.
+        A missing expected sha256 value is considered non-fatal.
+        """
+        self._load()
+        if self.sha256:
+            assert self.sha256 == self._actual_sha256

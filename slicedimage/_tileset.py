@@ -22,7 +22,11 @@ class TileSet(object):
         self._discrete_dimensions = set()
 
     def validate(self):
-        raise NotImplementedError()
+        """
+        Call validate on each contained tile.
+        """
+        for tile in self._tiles:
+            tile.validate()
 
     def add_tile(self, tile):
         self._tiles.append(tile)
