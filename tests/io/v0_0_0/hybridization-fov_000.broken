@@ -1,0 +1,53 @@
+{
+    "default_tile_format": "TIFF",
+    "default_tile_shape": [
+        8,
+        8
+    ],
+    "dimensions": [
+        "r",
+        "x",
+        "y",
+        "c",
+        "z"
+    ],
+    "extras": {
+        "OME": "hybridization-fov_000.companion.ome"
+    },
+    "shape": {
+        "c": 1,
+        "r": 1,
+        "z": 1
+    },
+    "tiles": [
+        {
+            "coordinates": {
+                "x": [
+                    0.0,
+                    0.0001
+                ],
+                "y": [
+                    0.0,
+                    0.0001
+                ],
+                "z": [
+                    0.0,
+                    0.0001
+                ]
+            },
+            "file": "hybridization-fov_000_Z0_T0_C0.ome.tiff",
+            "indices": {
+                "c": 0,
+                "r": 0,
+                "z": 0
+            },
+            "sha256": "...CORRUPTION...e3014f7ea209ec7cc289b3af5168ec69e79231900d93d0c7",
+            "tile_format": "TIFF",
+            "tile_shape": [
+                8,
+                8
+            ]
+        }
+    ],
+    "version": "1.0.0"
+}
