@@ -13,13 +13,14 @@ class HashWrapper(object):
     Simple context manager which wraps the read() method.
     The return value from each call to the underlying
     file-like object is passed to the update method of
-    the given hash method.
+    the given Hasher.
     """
 
-    def __init__(self, tile, fh, hash_method=sha256):
+    def __init__(self, tile, fh, Hasher=sha256):
         self.tile = tile
         self.fh = fh
-        self.hasher = hash_method()
+        self.Hasher = Hasher
+        self.hasher = Hasher()
 
     def __enter__(self):
         return self
@@ -31,6 +32,14 @@ class HashWrapper(object):
         buf = self.fh.read(*args, **kwargs)
         self.hasher.update(buf)
         return buf
+
+    def seek(self, offset):
+        # We assume that this is to reset the handle.
+        # Any value other than than zero is not supported
+        # since the next read would invalidate the hash.
+        assert offset == 0
+        self.hasher = self.Hasher()
+        return self.fh.seek(offset)
 
 
 class Tile(object):
