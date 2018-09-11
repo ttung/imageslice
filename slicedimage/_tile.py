@@ -7,7 +7,6 @@ from ._formats import ImageFormat
 from ._typeformatting import format_tile_dimensions
 
 
-
 class HashWrapper(object):
     """
     Simple context manager which wraps the read() method.
