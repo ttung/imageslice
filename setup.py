@@ -12,7 +12,12 @@ setuptools.setup(
     author="Tony Tung",
     author_email="ttung@chanzuckerberg.com",
     license="MIT",
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(
+        exclude=(
+            "tests",
+            "tests.*",
+        )
+    ),
     install_requires=install_requires,
     entry_points={
         'console_scripts': "slicedimage=slicedimage.cli.main:main"
