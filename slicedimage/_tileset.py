@@ -1,5 +1,6 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+from itertools import chain
 
 from ._typeformatting import format_tileset_dimensions, format_tileset_shape
 
@@ -22,12 +23,18 @@ class TileSet(object):
         self._discrete_dimensions = set()
 
     def __repr__(self):
-        r = self.shape['r']
-        c = self.shape['c']
-        z = self.shape['z']
-        y = self.default_tile_shape[1]
-        x = self.default_tile_shape[0]
-        return f'<slicedimage.TileSet (r: {r}, c: {c}, z: {z}, y: {y}, x: {x})>'
+        # get dimensions of optional shapes
+        shapes = (
+            "{k}: {v}".format(k=k, v=self.shape[k])
+            for k in self.dimensions - {'y', 'x'}
+        )
+        # get dimensions of x and y
+        tile_dimensions = (
+            "y: {y}".format(y=self.default_tile_shape[1]),
+            "x: {x}".format(x=self.default_tile_shape[0])
+        )
+        shape = ", ".join(chain(shapes, tile_dimensions))
+        return "<slicedimage.TileSet ({shape})>".format(shape=shape)
 
     def validate(self):
         raise NotImplementedError()
