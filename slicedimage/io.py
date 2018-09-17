@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import tempfile
+from io import BytesIO
 
 from packaging import version
 from six.moves import urllib
@@ -256,12 +257,15 @@ class v0_0_0(object):
                     }
 
                     with tile_opener(path, tile, ImageFormat.NUMPY.file_ext) as tile_fh:
-                        hasher_fh = HashFile(hashlib.sha256)
-                        writer_fh = TeeWritableFileObject(tile_fh, hasher_fh)
-                        tile_format = tile_writer(tile, writer_fh)
+                        buffer_fh = BytesIO()
+                        tile_format = tile_writer(tile, buffer_fh)
+
+                        buffer_fh.seek(0)
+                        tile.sha256 = hashlib.sha256(buffer_fh.getvalue()).hexdigest()
+
+                        buffer_fh.seek(0)
+                        tile_fh.write(buffer_fh.read())
                         tiledoc[TileKeys.FILE] = os.path.basename(tile_fh.name)
-                        if hasher_fh is not None:
-                            tile.sha256 = hasher_fh.hexdigest().lower()
 
                     if tile.tile_shape is not None:
                         tiledoc[TileKeys.TILE_SHAPE] = tile.tile_shape
@@ -273,36 +277,6 @@ class v0_0_0(object):
                     json_doc[TileSetKeys.TILES].append(tiledoc)
 
                 return json_doc
-
-
-class HashFile(object):
-    def __init__(self, hash_constructor):
-        self.hasher = hash_constructor()
-
-    def write(self, data):
-        self.hasher.update(data)
-        return len(data)
-
-    def digest(self):
-        return self.hasher.digest()
-
-    def hexdigest(self):
-        return self.hasher.hexdigest()
-
-
-class TeeWritableFileObject(object):
-    def __init__(self, *backingfiles):
-        self.backingfiles = backingfiles
-
-    def write(self, data):
-        for backingfile in self.backingfiles:
-            backingfile.write(data)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *args, **kwargs):
-        pass
 
 
 class CommonPartitionKeys(object):
