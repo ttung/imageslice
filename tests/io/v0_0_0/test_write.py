@@ -9,6 +9,7 @@ import numpy as np
 import skimage.io
 
 import slicedimage
+from slicedimage import ImageFormat
 from tests.utils import TemporaryDirectory, build_skeleton_manifest
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
@@ -180,3 +181,56 @@ class TestWrite(unittest.TestCase):
                 loaded = slicedimage.Reader.parse_doc(basename, baseurl)
 
                 loaded.tiles()[0]._load()
+
+    def test_write_tiff(self):
+        image = slicedimage.TileSet(
+            dimensions=["x", "y", "ch", "hyb"],
+            shape={'ch': 2, 'hyb': 2},
+            default_tile_shape=(100, 100),
+        )
+
+        for hyb in range(2):
+            for ch in range(2):
+                tile = slicedimage.Tile(
+                    coordinates={
+                        'x': (0.0, 0.01),
+                        'y': (0.0, 0.01),
+                    },
+                    indices={
+                        'hyb': hyb,
+                        'ch': ch,
+                    },
+                )
+                tile.numpy_array = np.zeros((100, 100), dtype=np.uint32)
+                tile.numpy_array[hyb, ch] = 1
+                image.add_tile(tile)
+
+        with TemporaryDirectory() as tempdir, \
+                tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            # create the tileset and save it.
+            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
+                image, partition_file.name, tile_format=ImageFormat.TIFF)
+            writer = codecs.getwriter("utf-8")
+            json.dump(partition_doc, writer(partition_file))
+            partition_file.flush()
+
+            # construct a URL to the tileset we wrote, and load the tileset.
+            basename = os.path.basename(partition_file.name)
+            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
+            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+
+            # compare the tiles we loaded to the tiles we set up.
+            for hyb in range(2):
+                for ch in range(2):
+                    tiles = [_tile
+                             for _tile in loaded.tiles(
+                                 lambda tile: (tile.indices['hyb'] == hyb and
+                                               tile.indices['ch'] == ch))]
+
+                    self.assertEqual(len(tiles), 1)
+
+                    expected = np.zeros((100, 100), dtype=np.uint32)
+                    expected[hyb, ch] = 1
+
+                    self.assertEqual(tiles[0].numpy_array.all(), expected.all())
+                    self.assertIsNotNone(tiles[0].sha256)

@@ -55,15 +55,13 @@ class Tile(object):
         self._numpy_array = None
         self.tile_format = tile_format
 
-    def write(self, dst_fh):
+    def write(self, dst_fh, tile_format):
         """
         Write the contents of this tile out to a given file handle.
         """
-        import numpy
-
         self._load()
 
-        numpy.save(dst_fh, self._numpy_array)
+        tile_format.writer_func(dst_fh, self._numpy_array)
 
     def copy(self, dst_fh):
         """
