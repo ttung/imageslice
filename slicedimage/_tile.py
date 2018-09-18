@@ -1,7 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from six import BytesIO
-
 from ._formats import ImageFormat
 from ._typeformatting import format_tile_dimensions
 
@@ -62,19 +60,3 @@ class Tile(object):
         self._load()
 
         tile_format.writer_func(dst_fh, self._numpy_array)
-
-    def copy(self, dst_fh):
-        """
-        Write the contents of this tile out to a given file handle, in the original file format
-        provided.
-        """
-        if self._source_fh_contextmanager is not None:
-            assert self._numpy_array is None
-            with self._source_fh_contextmanager as src_fh:
-                data = src_fh.read()
-                self._numpy_array = self.tile_format.reader_func(BytesIO(data))
-                dst_fh.write(data)
-            self._source_fh_contextmanager = None
-            self.tile_format = ImageFormat.NUMPY
-        else:
-            raise RuntimeError("copy can only be called on a tile that hasn't been decoded.")

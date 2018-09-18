@@ -141,10 +141,6 @@ class Writer(object):
             delete=False,
         )
 
-    @staticmethod
-    def default_tile_writer(tile, fh, format):
-        tile.write(fh, format)
-
     def generate_partition_document(self, partition, path, pretty=False, *args, **kwargs):
         raise NotImplementedError()
 
@@ -219,7 +215,6 @@ class v0_0_0(object):
                 pretty=False,
                 partition_path_generator=Writer.default_partition_path_generator,
                 tile_opener=Writer.default_tile_opener,
-                tile_writer=Writer.default_tile_writer,
                 tile_format=ImageFormat.NUMPY,
         ):
             json_doc = {
@@ -234,7 +229,6 @@ class v0_0_0(object):
                         partition, partition_path, pretty,
                         partition_path_generator=partition_path_generator,
                         tile_opener=tile_opener,
-                        tile_writer=tile_writer
                     )
                     json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(
                         partition_path)
@@ -259,7 +253,7 @@ class v0_0_0(object):
 
                     with tile_opener(path, tile, tile_format.file_ext) as tile_fh:
                         buffer_fh = BytesIO()
-                        tile_writer(tile, buffer_fh, tile_format)
+                        tile.write(buffer_fh, tile_format)
 
                         buffer_fh.seek(0)
                         tile.sha256 = hashlib.sha256(buffer_fh.getvalue()).hexdigest()
