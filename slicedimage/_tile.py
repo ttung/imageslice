@@ -1,13 +1,13 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ._formats import ImageFormat
-from ._typeformatting import format_tile_dimensions
+from ._typeformatting import format_tile_coordinates, format_tile_indices
 
 
 class Tile(object):
     def __init__(self, coordinates, indices, tile_shape=None, sha256=None, extras=None):
-        self.coordinates = format_tile_dimensions(coordinates)
-        self.indices = format_tile_dimensions(indices)
+        self.coordinates = format_tile_coordinates(coordinates)
+        self.indices = format_tile_indices(indices)
         self.tile_shape = tuple(tile_shape) if tile_shape is not None else None
         self.sha256 = sha256
         self.extras = {} if extras is None else extras

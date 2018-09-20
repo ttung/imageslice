@@ -1,20 +1,39 @@
 import enum
 
 
-def format_tile_dimensions(tile_dimensions):
+def format_tile_coordinates(tile_dimensions):
     """
     Given a dictionary mapping keys to values, where the keys may either be strings or enums, and
-    the values may either be iterables or not, return a new dictionary with the same contents,
-    except the keys are converted to strings and the values that are iterables are converted to
-    tuples.
+    the values may either be a scalar number or an iterable of two scalar numbers, return a new
+    dictionary with the same contents, except the keys are converted to strings, and the value is
+    transformed as per the following rules:
+
+    scalar_number -> (scalar_number, scalar_number)
+    [scalar_number_0, scalar_number_1] -> (scalar_number_0, scalar_number_1)
     """
     result = dict()
     for name, value in tile_dimensions.items():
+        key = _str_or_enum_to_str(name)
         try:
             iter(value)
-            result[_str_or_enum_to_str(name)] = tuple(value)
+            value = tuple(value)
+            if len(value) == 2:
+                result[key] = value
+            else:
+                raise ValueError("Not a valid input")
         except TypeError:
-            result[_str_or_enum_to_str(name)] = _str_or_enum_to_str(value)
+            result[key] = (value, value)
+    return result
+
+
+def format_tile_indices(tile_dimensions):
+    """
+    Given a dictionary mapping keys to values, where the keys may either be strings or enums,
+    return a new dictionary with the same contents, except the keys are converted to strings.
+    """
+    result = dict()
+    for name, value in tile_dimensions.items():
+        result[_str_or_enum_to_str(name)] = value
     return result
 
 
