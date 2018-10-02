@@ -190,12 +190,20 @@ class v0_0_0(object):
                         sha256=checksum,
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
-                    tile.set_source_fh_contextmanager(
-                        backend.read_contextmanager(
-                            name,
-                            checksum_sha256=checksum),
-                        tile_format)
-                    tile._file_or_url = relative_path_or_url
+
+                    def future_maker(_source_fh_contextmanager, _tile_format):
+                        """Produces a future that reads from a file and decodes according to the
+                        specified file format."""
+                        def _actual_future():
+                            with _source_fh_contextmanager as fh:
+                                return _tile_format.reader_func(fh)
+
+                        return _actual_future
+
+                    tile.set_numpy_array_future(
+                        future_maker(
+                            backend.read_contextmanager(name, checksum_sha256=checksum),
+                            tile_format))
                     result.add_tile(tile)
             else:
                 raise ValueError(
