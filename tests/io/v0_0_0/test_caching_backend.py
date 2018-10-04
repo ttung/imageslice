@@ -1,19 +1,16 @@
+import contextlib
 import hashlib
-import json
 import os
 import sys
+import tempfile
 import time
 import unittest
 
-import numpy as np
 import requests
-import skimage.io
 from six import unichr
 
-import slicedimage
-from slicedimage.backends import ChecksumValidationError
+from slicedimage.backends import ChecksumValidationError, HttpBackend, CachingBackend
 from tests.utils import (
-    build_skeleton_manifest,
     ContextualChildProcess,
     TemporaryDirectory,
     unused_tcp_port,
@@ -53,126 +50,82 @@ class TestCachingBackend(unittest.TestCase):
                 if time.time() > end:
                     raise
 
+        self.cachedir = TemporaryDirectory()
+        self.contexts.append(self.cachedir)
+
+        self.http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=self.port))
+        self.caching_backend = CachingBackend(self.cachedir.name, self.http_backend)
+
     def tearDown(self):
         for context in self.contexts:
             context.__exit__(*sys.exc_info())
 
-    def test_cached_backend(self):
-        """
-        Generate a tileset consisting of a single TIFF tile.  Deposit it where the HTTP server can
-        find the tileset, and fetch it. Then delete the TIFF file and re-run Reader.parse_doc with
-        the same url and manifest to make sure we get the same results pulling the file
-        from the cache
-        """
-        # write the tiff file
-        data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
-        file_path = os.path.join(self.tempdir.name, "tile.tiff")
-        skimage.io.imsave(file_path, data, plugin="tifffile")
-        with open(file_path, "rb") as fh:
-            checksum = hashlib.sha256(fh.read()).hexdigest()
-        manifest = build_skeleton_manifest()
-        manifest['tiles'].append(
-            {
-                "coordinates": {
-                    "x": [
-                        0.0,
-                        0.0001,
-                    ],
-                    "y": [
-                        0.0,
-                        0.0001,
-                    ]
-                },
-                "indices": {
-                    "hyb": 0,
-                    "ch": 0,
-                },
-                "file": "tile.tiff",
-                "format": "tiff",
-                "sha256": checksum
-            },
-        )
-        with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:
-            fh.write(json.dumps(manifest))
+    def test_checksum_good(self):
+        with self._test_checksum_setup(self.tempdir.name) as setupdata:
+            filename, data, expected_checksum = setupdata
 
-        result = slicedimage.Reader.parse_doc(
-            "tileset.json",
-            "http://localhost:{port}/".format(port=self.port))
+            with self.caching_backend.read_contextmanager(filename, expected_checksum) as cm:
+                self.assertEqual(cm.read(), data)
 
-        self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
+    def test_checksum_bad(self):
+        with self._test_checksum_setup(self.tempdir.name) as setupdata:
+            filename, data, expected_checksum = setupdata
 
-        os.remove(os.path.join(self.tempdir.name, "tile.tiff"))
-        result = slicedimage.Reader.parse_doc(
-            "tileset.json",
-            "http://localhost:{port}/".format(port=self.port))
+            # make the hash incorrect
+            expected_checksum = "{:x}".format(int(hashlib.sha256().hexdigest(), 16) + 1)
 
-        self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
+            with self.assertRaises(ChecksumValidationError):
+                with self.caching_backend.read_contextmanager(filename, expected_checksum) as cm:
+                    self.assertEqual(cm.read(), data)
 
     def test_cache_pollution(self):
         """
-        Generate a tileset consisting of a single TIFF tile.  Deposit it where the HTTP server can
-        find the tileset, but corrupt the data before fetching it.  The fetch should fail.
+        Try to fetch a file but corrupt the data before fetching it.  The fetch should fail.
 
         Return the data to an uncorrupted state and try to fetch it again.  It should not have
         cached the bad data.
         """
-        # write the tiff file
-        data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
-        file_path = os.path.join(self.tempdir.name, "tile.tiff")
-        skimage.io.imsave(file_path, data, plugin="tifffile")
-        with open(file_path, "rb") as fh:
-            checksum = hashlib.sha256(fh.read()).hexdigest()
-        manifest = build_skeleton_manifest()
-        manifest['tiles'].append(
-            {
-                "coordinates": {
-                    "x": [
-                        0.0,
-                        0.0001,
-                    ],
-                    "y": [
-                        0.0,
-                        0.0001,
-                    ]
-                },
-                "indices": {
-                    "hyb": 0,
-                    "ch": 0,
-                },
-                "file": "tile.tiff",
-                "format": "tiff",
-                "sha256": checksum
-            },
-        )
-        with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:
-            fh.write(json.dumps(manifest))
+        with self._test_checksum_setup(self.tempdir.name) as setupdata:
+            filename, data, expected_checksum = setupdata
 
-        # corrupt the file
-        with open(file_path, "r+b") as fh:
-            fh.seek(0)
-            real_first_byte = fh.read(1).decode("latin-1")
-            fh.seek(0)
-            fh.write(unichr(ord(real_first_byte) ^ 0xff).encode("latin-1"))
+            # corrupt the file
+            with open(os.path.join(self.tempdir.name, filename), "r+b") as fh:
+                fh.seek(0)
+                real_first_byte = fh.read(1).decode("latin-1")
+                fh.seek(0)
+                fh.write(unichr(ord(real_first_byte) ^ 0xff).encode("latin-1"))
 
-        result = slicedimage.Reader.parse_doc(
-            "tileset.json",
-            "http://localhost:{port}/".format(port=self.port))
+            with self.assertRaises(ChecksumValidationError):
+                with self.caching_backend.read_contextmanager(filename, expected_checksum) as cm:
+                    self.assertEqual(cm.read(), data)
 
-        with self.assertRaises(ChecksumValidationError):
-            result.tiles()[0].numpy_array
+            # un-corrupt the file
+            with open(os.path.join(self.tempdir.name, filename), "r+b") as fh:
+                fh.seek(0)
+                real_first_byte = fh.read(1).decode("latin-1")
+                fh.seek(0)
+                fh.write(unichr(ord(real_first_byte) ^ 0xff).encode("latin-1"))
 
-        # un-corrupt the file
-        with open(file_path, "r+b") as fh:
-            fh.seek(0)
-            real_first_byte = fh.read(1).decode("latin-1")
-            fh.seek(0)
-            fh.write(unichr(ord(real_first_byte) ^ 0xff).encode("latin-1"))
+            with self.caching_backend.read_contextmanager(filename, expected_checksum) as cm:
+                self.assertEqual(cm.read(), data)
 
-        result = slicedimage.Reader.parse_doc(
-            "tileset.json",
-            "http://localhost:{port}/".format(port=self.port))
+    @staticmethod
+    @contextlib.contextmanager
+    def _test_checksum_setup(tempdir):
+        """
+        Write some random data to a temporary file and yield its path, the data, and the checksum of
+        the data.
+        """
+        # write the file
+        data = os.urandom(1024)
 
-        result.tiles()[0].numpy_array
+        expected_checksum = hashlib.sha256(data).hexdigest()
+
+        with tempfile.NamedTemporaryFile(dir=tempdir) as tfh:
+            tfh.write(data)
+            tfh.flush()
+
+            yield os.path.basename(tfh.name), data, expected_checksum
 
 
 if __name__ == "__main__":

@@ -1,19 +1,16 @@
+import contextlib
 import hashlib
-import json
 import os
 import sys
+import tempfile
 import time
 import unittest
 
-import numpy as np
 import requests
-import skimage.io
 from requests import HTTPError
 
-import slicedimage
-from slicedimage.backends import ChecksumValidationError
+from slicedimage.backends import ChecksumValidationError, HttpBackend
 from tests.utils import (
-    build_skeleton_manifest,
     ContextualChildProcess,
     TemporaryDirectory,
     unused_tcp_port,
@@ -53,160 +50,57 @@ class TestHttpBackend(unittest.TestCase):
                 if time.time() > end:
                     raise
 
+        self.http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=self.port))
+
     def tearDown(self):
         for context in self.contexts:
             context.__exit__(*sys.exc_info())
 
-    def test_tiff(self):
-        """
-        Generate a tileset consisting of a single TIFF tile.  Deposit it where the HTTP server can
-        find the tileset, and fetch it.
-        """
-        # write the tiff file
-        data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
-        skimage.io.imsave(os.path.join(self.tempdir.name, "tile.tiff"), data, plugin="tifffile")
-
-        # TODO: (ttung) We should really be producing a tileset programmatically and writing it
-        # disk.  However, our current write path only produces numpy output files.
-        manifest = build_skeleton_manifest()
-        manifest['tiles'].append(
-            {
-                "coordinates": {
-                    "x": [
-                        0.0,
-                        0.0001,
-                    ],
-                    "y": [
-                        0.0,
-                        0.0001,
-                    ]
-                },
-                "indices": {
-                    "hyb": 0,
-                    "ch": 0,
-                },
-                "file": "tile.tiff",
-                "format": "tiff",
-            },
-        )
-        with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:
-            fh.write(json.dumps(manifest))
-
-        result = slicedimage.Reader.parse_doc(
-            "tileset.json",
-            "http://localhost:{port}/".format(port=self.port),
-            allow_caching=False,
-        )
-
-        self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
-
-    def test_numpy(self):
-        """
-        Generate a tileset consisting of a single NUMPY tile.  Deposit it where the HTTP server can
-        find the tileset, and fetch it.
-        """
-        image = slicedimage.TileSet(
-            ["x", "y", "ch", "hyb"],
-            {'ch': 1, 'hyb': 1},
-            (100, 100),
-        )
-
-        tile = slicedimage.Tile(
-            {
-                'x': (0.0, 0.01),
-                'y': (0.0, 0.01),
-            },
-            {
-                'hyb': 0,
-                'ch': 0,
-            },
-        )
-        tile.numpy_array = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
-        image.add_tile(tile)
-
-        partition_path = os.path.join(self.tempdir.name, "tileset.json")
-        partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-            image, partition_path)
-        with open(partition_path, "w") as fh:
-            json.dump(partition_doc, fh)
-
-        result = slicedimage.Reader.parse_doc(
-            "tileset.json",
-            "http://localhost:{port}/".format(port=self.port),
-            allow_caching=False,
-        )
-
-        self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, tile.numpy_array))
-
     def test_checksum_good(self):
-        self._test_checksum(True)
+        with self._test_checksum_setup(self.tempdir.name) as setupdata:
+            filename, data, expected_checksum = setupdata
+
+            with self.http_backend.read_contextmanager(filename, expected_checksum) as cm:
+                self.assertEqual(cm.read(), data)
 
     def test_checksum_bad(self):
-        self._test_checksum(False)
+        with self._test_checksum_setup(self.tempdir.name) as setupdata:
+            filename, data, expected_checksum = setupdata
 
-    def _test_checksum(self, good):
-        """
-        Generate a tileset consisting of a single TIFF tile.  If the parameter `good` is True, then
-        we provide the correct checksum and verify loading works correctly.  Otherwise, we provide
-        the incorrect checksum and verify that loading raises an exception.
-        """
-        # write the tiff file
-        data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
-        file_path = os.path.join(self.tempdir.name, "tile.tiff")
-        skimage.io.imsave(file_path, data, plugin="tifffile")
-        if good:
-            with open(file_path, "rb") as fh:
-                checksum = hashlib.sha256(fh.read()).hexdigest()
-        else:
-            checksum = hashlib.sha256(b"not-empty-string").hexdigest()
+            # make the hash incorrect
+            expected_checksum = "{:x}".format(int(hashlib.sha256().hexdigest(), 16) + 1)
 
-        manifest = build_skeleton_manifest()
-        manifest['tiles'].append(
-            {
-                "coordinates": {
-                    "x": [
-                        0.0,
-                        0.0001,
-                    ],
-                    "y": [
-                        0.0,
-                        0.0001,
-                    ]
-                },
-                "indices": {
-                    "hyb": 0,
-                    "ch": 0,
-                },
-                "file": "tile.tiff",
-                "format": "tiff",
-                "sha256": checksum,
-            },
-        )
-        with open(os.path.join(self.tempdir.name, "tileset.json"), "w") as fh:
-            fh.write(json.dumps(manifest))
-
-        result = slicedimage.Reader.parse_doc(
-            "tileset.json",
-            "http://localhost:{port}/".format(port=self.port),
-            allow_caching=False,
-        )
-
-        if good:
-            self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
-        else:
             with self.assertRaises(ChecksumValidationError):
-                result.tiles()[0]._load()
+                with self.http_backend.read_contextmanager(filename, expected_checksum) as cm:
+                    self.assertEqual(cm.read(), data)
+
+    @staticmethod
+    @contextlib.contextmanager
+    def _test_checksum_setup(tempdir):
+        """
+        Write some random data to a temporary file and yield its path, the data, and the checksum of
+        the data.
+        """
+        # write the file
+        data = os.urandom(1024)
+
+        expected_checksum = hashlib.sha256(data).hexdigest()
+
+        with tempfile.NamedTemporaryFile(dir=tempdir) as tfh:
+            tfh.write(data)
+            tfh.flush()
+
+            yield os.path.basename(tfh.name), data, expected_checksum
 
     def test_error(self):
         """
         Verifies that we raise an exception when we fail to find a file.
         """
         with self.assertRaises(HTTPError):
-            slicedimage.Reader.parse_doc(
-                "tileset.json",
-                "http://localhost:{port}/".format(port=self.port),
-                allow_caching=False,
-            )
+            backend = HttpBackend("http://0.0.0.0:{port}".format(port=self.port))
+            with self.assertRaises(ChecksumValidationError):
+                with backend.read_contextmanager("tileset.json") as cm:
+                    cm.read()
 
 
 if __name__ == "__main__":
