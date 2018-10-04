@@ -14,18 +14,17 @@ class Tile(object):
         self._numpy_array = None
         self._numpy_array_future = None
 
-    def _load(self):
-        if self._numpy_array_future is not None:
-            assert self._numpy_array is None, (
-                "Inconsistent state.  Tile should only have one data source.")
-            self._numpy_array = self._numpy_array_future()
-            self._numpy_array_future = None
-            self.tile_shape = self.numpy_array.shape
-
     @property
     def numpy_array(self):
-        self._load()
-        return self._numpy_array
+        if self._numpy_array is not None:
+            return self._numpy_array
+        else:
+            result = self._numpy_array_future()
+
+            if self.tile_shape is not None:
+                assert self.tile_shape == result.shape
+
+            return result
 
     @numpy_array.setter
     def numpy_array(self, numpy_array):
@@ -38,8 +37,8 @@ class Tile(object):
 
     def set_numpy_array_future(self, future):
         """
-        Provides a tile with a callable, which should return the tile data when invoked.  It is
-        possible that the future is never invoked.
+        Provides a tile with a callable, which should return the tile data when invoked.  It should
+        be possible to invoke the callable 0, 1, or many times.
 
         Parameters
         ----------
@@ -53,6 +52,4 @@ class Tile(object):
         """
         Write the contents of this tile out to a given file handle.
         """
-        self._load()
-
-        tile_format.writer_func(dst_fh, self._numpy_array)
+        tile_format.writer_func(dst_fh, self.numpy_array)

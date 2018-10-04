@@ -180,7 +180,7 @@ class TestWrite(unittest.TestCase):
 
                 loaded = slicedimage.Reader.parse_doc(basename, baseurl)
 
-                loaded.tiles()[0]._load()
+                loaded.tiles()[0].numpy_array
 
     def test_write_tiff(self):
         image = slicedimage.TileSet(
