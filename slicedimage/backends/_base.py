@@ -5,6 +5,22 @@ import hashlib
 
 class Backend(object):
     def read_contextmanager(self, name, checksum_sha256=None):
+        """
+        Returns a context manager, that when entered, should return a file-like object that can be
+        read to get the data.
+
+        It is possible to enter the context manager multiple times to yield the same data.
+
+        If the checksum is provided and it does not match the checksum of the data read,
+        ChecksumValidationError will be raised.
+
+        Parameters
+        ----------
+        name : str
+            The name of the file that is to be read.
+        checksum_sha256 : Optional[str]
+            The expected checksum of the file.
+        """
         raise NotImplementedError()
 
     def write_file_handle(self, name):

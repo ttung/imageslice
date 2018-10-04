@@ -30,6 +30,23 @@ class TestDiskBackend(unittest.TestCase):
                         expected_checksum) as cm:
                     self.assertEqual(cm.read(), data)
 
+    def test_reentrant(self):
+        with self._test_checksum_setup() as setupdata:
+            filepath, data, expected_checksum = setupdata
+
+            backend = DiskBackend(os.path.dirname(filepath))
+            with backend.read_contextmanager(os.path.basename(filepath), expected_checksum) as cm0:
+                data0 = cm0.read(1)
+                with backend.read_contextmanager(
+                        os.path.basename(filepath),
+                        expected_checksum) as cm1:
+                    data1 = cm1.read()
+
+                data0 = data0 + cm0.read()
+
+                self.assertEqual(data, data0)
+                self.assertEqual(data, data1)
+
     @staticmethod
     @contextlib.contextmanager
     def _test_checksum_setup():
