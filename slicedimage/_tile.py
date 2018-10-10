@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
+import warnings
+
 from ._typeformatting import format_tile_coordinates, format_tile_indices
 
 
@@ -7,12 +9,23 @@ class Tile(object):
     def __init__(self, coordinates, indices, tile_shape=None, sha256=None, extras=None):
         self.coordinates = format_tile_coordinates(coordinates)
         self.indices = format_tile_indices(indices)
-        self.tile_shape = tuple(tile_shape) if tile_shape is not None else None
+        self._tile_shape = tuple(tile_shape) if tile_shape is not None else None
         self.sha256 = sha256
         self.extras = {} if extras is None else extras
 
         self._numpy_array = None
         self._numpy_array_future = None
+
+    @property
+    def tile_shape(self):
+        if self._tile_shape is None:
+            warnings.warn(
+                "Decoding tile just to obtain shape.  It is recommended to include the tile shape "
+                "in the tileset document to avoid this."
+            )
+            self._tile_shape = self._numpy_array_future().shape
+
+        return self._tile_shape
 
     @property
     def numpy_array(self):
@@ -21,19 +34,20 @@ class Tile(object):
         else:
             result = self._numpy_array_future()
 
-            if self.tile_shape is not None:
-                assert self.tile_shape == result.shape
+            if self._tile_shape is not None:
+                assert self._tile_shape == result.shape
+            self._tile_shape = result.shape
 
             return result
 
     @numpy_array.setter
     def numpy_array(self, numpy_array):
-        if self.tile_shape is not None:
-            assert self.tile_shape == numpy_array.shape
+        if self._tile_shape is not None:
+            assert self._tile_shape == numpy_array.shape
 
         self._numpy_array = numpy_array
-        self.tile_shape = self._numpy_array.shape
         self._numpy_array_future = None
+        self._tile_shape = self._numpy_array.shape
 
     def set_numpy_array_future(self, future):
         """
