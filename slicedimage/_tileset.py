@@ -1,6 +1,5 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 from ._typeformatting import format_tileset_dimensions, format_tileset_shape
 
 
@@ -20,6 +19,41 @@ class TileSet(object):
         self._tiles = []
 
         self._discrete_dimensions = set()
+
+    def __repr__(self):
+        # get dimensions of optional shapes
+        attributes = [
+            "{k}: {v}".format(k=k, v=self.shape[k])
+            for k in self.dimensions - {'y', 'x'}
+        ]
+        xmin, xmax, ymin, ymax = float("inf"), float("-inf"), float("inf"), float("-inf")
+        for tile in self._tiles:
+            # try to get the shape in the following order:
+            # 1. read the tile's declared shape without forcing a read & decode of the tile data.
+            # 2. read the tileset's default tile shape.
+            # 3. read the tile's shape through a read & decode.
+            shape = tile._tile_shape
+            if shape is None:
+                shape = self.default_tile_shape
+            if shape is None:
+                shape = tile.tile_shape
+
+            xmin = min(xmin, shape[0])
+            xmax = max(xmax, shape[0])
+            ymin = min(ymin, shape[1])
+            ymax = max(ymax, shape[1])
+
+        if xmin == xmax:
+            attributes.append("x: {}".format(xmin))
+        else:
+            attributes.append("x: ({}-{})".format(xmin, xmax))
+        if ymin == ymax:
+            attributes.append("y: {}".format(ymin))
+        else:
+            attributes.append("y: ({}-{})".format(ymin, ymax))
+
+        shape = ", ".join(attributes)
+        return "<slicedimage.TileSet ({shape})>".format(shape=shape)
 
     def validate(self):
         raise NotImplementedError()
