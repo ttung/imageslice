@@ -17,7 +17,9 @@ def format_tile_coordinates(tile_dimensions):
         try:
             iter(value)
             value = tuple(value)
-            if len(value) == 2:
+            if len(value) == 1:
+                result[key] = (value[0], value[0])
+            elif len(value) == 2:
                 result[key] = value
             else:
                 raise ValueError("Not a valid input")

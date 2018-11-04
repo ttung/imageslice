@@ -31,14 +31,14 @@ class TestTileCoordinates(unittest.TestCase):
         )
         self.assertEqual(tile.coordinates['coord'], (0, 0))
 
-    def test_single_scalar_in_tuple(self):
-        with self.assertRaises(ValueError):
-            Tile(
-                {
-                    'coord': (0,),
-                },
-                {},
-            )
+    def test_single_scalar_to_tuple(self):
+        tile = Tile(
+            {
+                'coord': (0,),
+            },
+            {},
+        )
+        self.assertEqual(tile.coordinates['coord'], (0, 0))
 
     def test_long_tuple(self):
         with self.assertRaises(ValueError):
