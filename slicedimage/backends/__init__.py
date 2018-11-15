@@ -11,4 +11,5 @@ __all__ = [
     ChecksumValidationError,
     DiskBackend,
     HttpBackend,
+    SIZE_LIMIT,
 ]
