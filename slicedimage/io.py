@@ -11,7 +11,7 @@ from packaging import version
 from six.moves import urllib
 
 from slicedimage.urlpath import pathjoin, pathsplit
-from .backends import CachingBackend, DiskBackend, HttpBackend
+from .backends import CachingBackend, DiskBackend, HttpBackend, SIZE_LIMIT
 from ._collection import Collection
 from ._formats import ImageFormat
 from ._tile import Tile
@@ -27,8 +27,15 @@ def infer_backend(baseurl, allow_caching=True):
 
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
-        if allow_caching:
+        if allow_caching is True:
             backend = CachingBackend(os.path.expanduser("~/.starfish-cache"), backend)
+        elif isinstance(allow_caching, dict):
+            # Configuration dictionary
+            if allow_caching.get("allow_caching", True):
+                size_limit = allow_caching.get("size_limit", SIZE_LIMIT)
+                cache_dir = allow_caching.get("directory", "~/.starfish-cache")
+                cache_dir = os.path.expanduser(cache_dir)
+                backend = CachingBackend(cache_dir, backend, size_limit)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:
