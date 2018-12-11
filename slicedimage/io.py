@@ -27,6 +27,7 @@ def infer_backend(baseurl, backend_config=None):
 
      - cache.enabled (default: true)
      - cache.directory (default: ~/.starfish-cache)
+     - cache.debug (default: False)
      - cache.size_limit (default: SIZE_LIMIT)
 
     """
@@ -43,6 +44,10 @@ def infer_backend(baseurl, backend_config=None):
             size_limit = cache_config.get("size_limit", SIZE_LIMIT)
             cache_dir = cache_config.get("directory", "~/.starfish-cache")
             cache_dir = os.path.expanduser(cache_dir)
+            debug = cache_config.get("debug", False)
+            if debug:
+                print("> caching {} to {} (size_limit: {})".format(
+                    baseurl, cache_dir, size_limit))
             backend = CachingBackend(cache_dir, backend, size_limit)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
