@@ -18,24 +18,32 @@ from ._tile import Tile
 from ._tileset import TileSet
 
 
-def infer_backend(baseurl, allow_caching=True):
+def infer_backend(baseurl, backend_config=None):
     """
     Guess the backend based on the format of `baseurl`, the consistent part of the URL or file path.
+    The backend_config dictionary can contain flexible parameters for the different backends.
+
+    Caching parameters include:
+
+     - cache.enabled (default: true)
+     - cache.directory (default: ~/.starfish-cache)
+     - cache.size_limit (default: SIZE_LIMIT)
+
     """
 
     parsed = urllib.parse.urlparse(baseurl)
+    cache_config = {}
+    if backend_config is not None:
+        cache_config = backend_config.get("cache", cache_config)
+    cache_enabled = cache_config.get("enabled", True)
 
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
-        if allow_caching is True:
-            backend = CachingBackend(os.path.expanduser("~/.starfish-cache"), backend)
-        elif isinstance(allow_caching, dict):
-            # Configuration dictionary
-            if allow_caching.get("allow_caching", True):
-                size_limit = allow_caching.get("size_limit", SIZE_LIMIT)
-                cache_dir = allow_caching.get("directory", "~/.starfish-cache")
-                cache_dir = os.path.expanduser(cache_dir)
-                backend = CachingBackend(cache_dir, backend, size_limit)
+        if cache_enabled is True:
+            size_limit = cache_config.get("size_limit", SIZE_LIMIT)
+            cache_dir = cache_config.get("directory", "~/.starfish-cache")
+            cache_dir = os.path.expanduser(cache_dir)
+            backend = CachingBackend(cache_dir, backend, size_limit)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:
@@ -45,36 +53,36 @@ def infer_backend(baseurl, allow_caching=True):
     return backend
 
 
-def resolve_path_or_url(path_or_url, allow_caching=True):
+def resolve_path_or_url(path_or_url, backend_config=None):
     """
     Given either a path (absolute or relative), or a URL, attempt to resolve it.  Returns a tuple
     consisting of: a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and
     the baseurl of the object.
     """
     try:
-        return resolve_url(path_or_url, allow_caching=allow_caching)
+        return resolve_url(path_or_url, backend_config=None)
     except ValueError:
         if os.path.isfile(path_or_url):
             return resolve_url(
                 os.path.basename(path_or_url),
                 baseurl="file://{}".format(os.path.dirname(os.path.abspath(path_or_url))),
-                allow_caching=allow_caching,
+                backend_config=backend_config
             )
         raise
 
 
-def _resolve_absolute_url(absolute_url, allow_caching):
+def _resolve_absolute_url(absolute_url, backend_config):
     """
     Given a string that is an absolute URL, return a tuple consisting of: a
     :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of
     the object.
     """
     splitted = pathsplit(absolute_url)
-    backend = infer_backend(splitted[0], allow_caching)
+    backend = infer_backend(splitted[0], backend_config)
     return backend, splitted[1], splitted[0]
 
 
-def resolve_url(name_or_url, baseurl=None, allow_caching=True):
+def resolve_url(name_or_url, baseurl=None, backend_config=None):
     """
     Given a string that can either be a name or a fully qualified url, return a tuple consisting of:
     a :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of
@@ -85,19 +93,19 @@ def resolve_url(name_or_url, baseurl=None, allow_caching=True):
     """
     try:
         # assume it's a fully qualified url.
-        return _resolve_absolute_url(name_or_url, allow_caching)
+        return _resolve_absolute_url(name_or_url, backend_config)
     except ValueError:
         if baseurl is None:
             # oh, we have no baseurl.  punt.
             raise
         absolute_url = pathjoin(baseurl, name_or_url)
-        return _resolve_absolute_url(absolute_url, allow_caching)
+        return _resolve_absolute_url(absolute_url, backend_config)
 
 
 class Reader(object):
     @staticmethod
-    def parse_doc(name_or_url, baseurl, allow_caching=True):
-        backend, name, baseurl = resolve_url(name_or_url, baseurl, allow_caching)
+    def parse_doc(name_or_url, baseurl, backend_config=None):
+        backend, name, baseurl = resolve_url(name_or_url, baseurl, backend_config)
         with backend.read_contextmanager(name) as fh:
             reader = codecs.getreader("utf-8")
             json_doc = json.load(reader(fh))
@@ -112,9 +120,9 @@ class Reader(object):
             raise KeyError(
                 "JSON document missing `version` field. Please specify the file format version.")
 
-        return parser.parse(json_doc, baseurl, allow_caching)
+        return parser.parse(json_doc, baseurl, backend_config)
 
-    def parse(self, json_doc, baseurl, allow_caching):
+    def parse(self, json_doc, baseurl, backend_config):
         raise NotImplementedError()
 
 
@@ -156,7 +164,7 @@ class v0_0_0(object):
     VERSION = "0.0.0"
 
     class Reader(Reader):
-        def parse(self, json_doc, baseurl, allow_caching):
+        def parse(self, json_doc, baseurl, backend_config):
             if CollectionKeys.CONTENTS in json_doc:
                 # this is a Collection
                 result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
@@ -178,7 +186,7 @@ class v0_0_0(object):
 
                 for tile_doc in json_doc[TileSetKeys.TILES]:
                     relative_path_or_url = tile_doc[TileKeys.FILE]
-                    backend, name, _ = resolve_url(relative_path_or_url, baseurl, allow_caching)
+                    backend, name, _ = resolve_url(relative_path_or_url, baseurl, backend_config)
 
                     tile_format_str = tile_doc.get(TileKeys.TILE_FORMAT, None)
                     if tile_format_str:
