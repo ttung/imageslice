@@ -237,6 +237,7 @@ class v0_0_0(object):
                         partition, partition_path, pretty,
                         partition_path_generator=partition_path_generator,
                         tile_opener=tile_opener,
+                        tile_format=tile_format,
                     )
                     json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(
                         partition_path)
