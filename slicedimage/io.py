@@ -25,25 +25,24 @@ def infer_backend(baseurl, backend_config=None):
 
     Caching parameters include:
 
-     - cache.enabled (default: true)
-     - cache.directory (default: ~/.starfish-cache)
+     - cache.directory (default: None which disables caching)
      - cache.debug (default: False)
      - cache.size_limit (default: SIZE_LIMIT)
 
     """
 
     parsed = urllib.parse.urlparse(baseurl)
-    cache_config = {}
-    if backend_config is not None:
-        cache_config = backend_config.get("cache", cache_config)
-    cache_enabled = cache_config.get("enabled", True)
 
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
-        if cache_enabled is True:
-            size_limit = cache_config.get("size_limit", SIZE_LIMIT)
-            cache_dir = cache_config.get("directory", "~/.starfish-cache")
+
+        cache_config = {}
+        if backend_config is not None:
+            cache_config = backend_config.get("cache", cache_config)
+        cache_dir = cache_config.get("directory", None)
+        if cache_dir is not None:
             cache_dir = os.path.expanduser(cache_dir)
+            size_limit = cache_config.get("size_limit", SIZE_LIMIT)
             debug = cache_config.get("debug", False)
             if debug:
                 print("> caching {} to {} (size_limit: {})".format(
