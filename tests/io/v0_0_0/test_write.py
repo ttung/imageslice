@@ -162,7 +162,7 @@ class TestWrite(unittest.TestCase):
             image = slicedimage.Reader.parse_doc(
                 "tileset.json",
                 "file://{}".format(tempdir),
-                {"cache": {"enabled": False}}
+                {"cache": {}},  # no directory so disabled
             )
 
             with TemporaryDirectory() as output_tempdir, \
