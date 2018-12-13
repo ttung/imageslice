@@ -173,7 +173,7 @@ class v0_0_0(object):
                 # this is a Collection
                 result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
                 for name, relative_path_or_url in json_doc[CollectionKeys.CONTENTS].items():
-                    collection = Reader.parse_doc(relative_path_or_url, baseurl)
+                    collection = Reader.parse_doc(relative_path_or_url, baseurl, backend_config)
                     collection._name_or_url = relative_path_or_url
                     result.add_partition(name, collection)
             elif TileSetKeys.TILES in json_doc:
