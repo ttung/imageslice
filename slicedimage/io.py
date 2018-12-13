@@ -23,11 +23,11 @@ def infer_backend(baseurl, backend_config=None):
     Guess the backend based on the format of `baseurl`, the consistent part of the URL or file path.
     The backend_config dictionary can contain flexible parameters for the different backends.
 
-    Caching parameters include:
+    Caching parameter keys include:
 
-     - cache.directory (default: None which disables caching)
-     - cache.debug (default: False)
-     - cache.size_limit (default: SIZE_LIMIT)
+     - ["caching"]["directory"]  (default: None which disables caching)
+     - ["caching"]["debug"]      (default: False)
+     - ["caching"]["size_limit"] (default: SIZE_LIMIT)
 
     """
 
@@ -38,7 +38,7 @@ def infer_backend(baseurl, backend_config=None):
 
         cache_config = {}
         if backend_config is not None:
-            cache_config = backend_config.get("cache", cache_config)
+            cache_config = backend_config.get("caching", cache_config)
         cache_dir = cache_config.get("directory", None)
         if cache_dir is not None:
             cache_dir = os.path.expanduser(cache_dir)
