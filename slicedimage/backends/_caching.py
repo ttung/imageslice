@@ -18,7 +18,7 @@ class CachingBackend(Backend):
     def __init__(self, cacheroot, authoritative_backend, size_limit=SIZE_LIMIT):
         with CachingBackend._LOCK:
             if cacheroot not in CachingBackend._CACHE:
-                CachingBackend._CACHE[cacheroot] = Cache(cacheroot, size=int(size_limit))
+                CachingBackend._CACHE[cacheroot] = Cache(cacheroot, size_limit=int(size_limit))
             self._cache = CachingBackend._CACHE[cacheroot]
         self._authoritative_backend = authoritative_backend
 
