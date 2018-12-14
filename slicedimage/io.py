@@ -37,8 +37,9 @@ def infer_backend(baseurl, backend_config=None):
         backend = HttpBackend(baseurl)
 
         cache_config = {}
-        if backend_config is not None:
+        if isinstance(backend_config, dict):
             cache_config = backend_config.get("caching", cache_config)
+
         cache_dir = cache_config.get("directory", None)
         if cache_dir is not None:
             cache_dir = os.path.expanduser(cache_dir)
