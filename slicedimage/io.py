@@ -43,11 +43,12 @@ def infer_backend(baseurl, backend_config=None):
         if cache_dir is not None:
             cache_dir = os.path.expanduser(cache_dir)
             size_limit = cache_config.get("size_limit", SIZE_LIMIT)
-            debug = cache_config.get("debug", False)
-            if debug:
-                print("> caching {} to {} (size_limit: {})".format(
-                    baseurl, cache_dir, size_limit))
-            backend = CachingBackend(cache_dir, backend, size_limit)
+            if size_limit > 0:
+                debug = cache_config.get("debug", False)
+                if debug:
+                    print("> caching {} to {} (size_limit: {})".format(
+                        baseurl, cache_dir, size_limit))
+                backend = CachingBackend(cache_dir, backend, size_limit)
     elif parsed.scheme == "file":
         backend = DiskBackend(parsed.path)
     else:
