@@ -25,6 +25,7 @@ class TileSet(object):
         attributes = [
             "{k}: {v}".format(k=k, v=self.shape[k])
             for k in self.dimensions - {'y', 'x'}
+            if k in self.shape
         ]
         xmin, xmax, ymin, ymax = float("inf"), float("-inf"), float("inf"), float("-inf")
         for tile in self._tiles:
