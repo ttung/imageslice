@@ -10,6 +10,7 @@ import skimage.io
 
 import slicedimage
 from slicedimage import ImageFormat
+from slicedimage._dimensions import DimensionNames
 from tests.utils import TemporaryDirectory, build_skeleton_manifest
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
@@ -18,17 +19,17 @@ baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 class TestWrite(unittest.TestCase):
     def test_write_tileset(self):
         image = slicedimage.TileSet(
-            ["x", "y", "ch", "hyb"],
+            [DimensionNames.X, DimensionNames.Y, "ch", "hyb"],
             {'ch': 2, 'hyb': 2},
-            {'y': 120, 'x': 80},
+            {DimensionNames.Y: 120, DimensionNames.X: 80},
         )
 
         for hyb in range(2):
             for ch in range(2):
                 tile = slicedimage.Tile(
                     {
-                        'x': (0.0, 0.01),
-                        'y': (0.0, 0.01),
+                        DimensionNames.X: (0.0, 0.01),
+                        DimensionNames.Y: (0.0, 0.01),
                     },
                     {
                         'hyb': hyb,
@@ -69,17 +70,17 @@ class TestWrite(unittest.TestCase):
 
     def test_write_collection(self):
         image = slicedimage.TileSet(
-            ["x", "y", "ch", "hyb"],
+            [DimensionNames.X, DimensionNames.Y, "ch", "hyb"],
             {'ch': 2, 'hyb': 2},
-            {'y': 120, 'x': 80},
+            {DimensionNames.Y: 120, DimensionNames.X: 80},
         )
 
         for hyb in range(2):
             for ch in range(2):
                 tile = slicedimage.Tile(
                     {
-                        'x': (0.0, 0.01),
-                        'y': (0.0, 0.01),
+                        DimensionNames.X: (0.0, 0.01),
+                        DimensionNames.Y: (0.0, 0.01),
                     },
                     {
                         'hyb': hyb,
@@ -138,11 +139,11 @@ class TestWrite(unittest.TestCase):
             manifest['tiles'].append(
                 {
                     "coordinates": {
-                        "x": [
+                        DimensionNames.X.value: [
                             0.0,
                             0.0001,
                         ],
-                        "y": [
+                        DimensionNames.Y.value: [
                             0.0,
                             0.0001,
                         ]
@@ -184,17 +185,17 @@ class TestWrite(unittest.TestCase):
 
     def test_write_tiff(self):
         image = slicedimage.TileSet(
-            dimensions=["x", "y", "ch", "hyb"],
+            dimensions=[DimensionNames.X, DimensionNames.Y, "ch", "hyb"],
             shape={'ch': 2, 'hyb': 2},
-            default_tile_shape={'y': 120, 'x': 80},
+            default_tile_shape={DimensionNames.Y: 120, DimensionNames.X: 80},
         )
 
         for hyb in range(2):
             for ch in range(2):
                 tile = slicedimage.Tile(
                     coordinates={
-                        'x': (0.0, 0.01),
-                        'y': (0.0, 0.01),
+                        DimensionNames.X: (0.0, 0.01),
+                        DimensionNames.Y: (0.0, 0.01),
                     },
                     indices={
                         'hyb': hyb,

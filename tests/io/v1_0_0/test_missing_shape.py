@@ -8,6 +8,7 @@ import warnings
 import numpy as np
 
 import slicedimage
+from slicedimage._dimensions import DimensionNames
 from slicedimage.io import TileKeys, TileSetKeys
 from tests.utils import TemporaryDirectory
 
@@ -17,7 +18,7 @@ baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 class TestMissingShape(unittest.TestCase):
     def test_tileset_without_shapes(self):
         image = slicedimage.TileSet(
-            ["x", "y", "ch", "hyb"],
+            [DimensionNames.X, DimensionNames.Y, "ch", "hyb"],
             {'ch': 2, 'hyb': 2},
         )
 
@@ -25,8 +26,8 @@ class TestMissingShape(unittest.TestCase):
             for ch in range(2):
                 tile = slicedimage.Tile(
                     {
-                        'x': (0.0, 0.01),
-                        'y': (0.0, 0.01),
+                        DimensionNames.X: (0.0, 0.01),
+                        DimensionNames.Y: (0.0, 0.01),
                     },
                     {
                         'hyb': hyb,
@@ -70,6 +71,6 @@ class TestMissingShape(unittest.TestCase):
 
                         tile_shape = tiles[0].tile_shape
 
-                        self.assertEqual(tile_shape, {'y': 120, 'x': 80})
+                        self.assertEqual(tile_shape, {DimensionNames.Y: 120, DimensionNames.X: 80})
                         self.assertEqual(len(w), 1)
                         self.assertIn("Decoding tile just to obtain shape", str(w[0].message))

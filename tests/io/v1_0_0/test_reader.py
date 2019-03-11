@@ -7,6 +7,7 @@ import numpy as np
 import skimage.io
 
 import slicedimage
+from slicedimage._dimensions import DimensionNames
 from tests.utils import build_skeleton_manifest, TemporaryDirectory
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
@@ -68,11 +69,11 @@ class TestFormats(unittest.TestCase):
             manifest['tiles'].append(
                 {
                     "coordinates": {
-                        "x": [
+                        DimensionNames.X.value: [
                             0.0,
                             0.0001,
                         ],
-                        "y": [
+                        DimensionNames.Y.value: [
                             0.0,
                             0.0001,
                         ]
@@ -100,15 +101,15 @@ class TestFormats(unittest.TestCase):
         Generate a tileset consisting of a single TIFF tile, and then read it.
         """
         image = slicedimage.TileSet(
-            ["x", "y", "ch", "hyb"],
+            [DimensionNames.X, DimensionNames.Y, "ch", "hyb"],
             {'ch': 1, 'hyb': 1},
-            {'y': 120, 'x': 80},
+            {DimensionNames.Y: 120, DimensionNames.X: 80},
         )
 
         tile = slicedimage.Tile(
             {
-                'x': (0.0, 0.01),
-                'y': (0.0, 0.01),
+                DimensionNames.X: (0.0, 0.01),
+                DimensionNames.Y: (0.0, 0.01),
             },
             {
                 'hyb': 0,
