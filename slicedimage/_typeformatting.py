@@ -26,13 +26,13 @@ def format_tile_coordinates(tile_dimensions):
     return result
 
 
-def format_tile_indices(tile_dimensions):
+def format_enum_keyed_dicts(enum_keyed_dict):
     """
     Given a dictionary mapping keys to values, where the keys may either be strings or enums,
     return a new dictionary with the same contents, except the keys are converted to strings.
     """
     result = dict()
-    for name, value in tile_dimensions.items():
+    for name, value in enum_keyed_dict.items():
         result[_str_or_enum_to_str(name)] = value
     return result
 

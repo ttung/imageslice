@@ -1,6 +1,11 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-from ._typeformatting import format_tileset_dimensions, format_tileset_shape
+from ._dimensions import DimensionNames
+from ._typeformatting import (
+    format_enum_keyed_dicts,
+    format_tileset_dimensions,
+    format_tileset_shape,
+)
 
 
 class TileSet(object):
@@ -13,7 +18,8 @@ class TileSet(object):
             extras=None):
         self.dimensions = format_tileset_dimensions(dimensions)
         self.shape = format_tileset_shape(shape)
-        self.default_tile_shape = None if default_tile_shape is None else tuple(default_tile_shape)
+        self.default_tile_shape = (format_enum_keyed_dicts(default_tile_shape)
+                                   if default_tile_shape is not None else None)
         self.default_tile_format = default_tile_format
         self.extras = {} if extras is None else extras
         self._tiles = []
@@ -24,7 +30,7 @@ class TileSet(object):
         # get dimensions of optional shapes
         attributes = [
             "{k}: {v}".format(k=k, v=self.shape[k])
-            for k in self.dimensions - {'y', 'x'}
+            for k in self.dimensions - {DimensionNames.Y, DimensionNames.X}
             if k in self.shape
         ]
         xmin, xmax, ymin, ymax = float("inf"), float("-inf"), float("inf"), float("-inf")
@@ -39,10 +45,10 @@ class TileSet(object):
             if shape is None:
                 shape = tile.tile_shape
 
-            xmin = min(xmin, shape[0])
-            xmax = max(xmax, shape[0])
-            ymin = min(ymin, shape[1])
-            ymax = max(ymax, shape[1])
+            xmin = min(xmin, shape[DimensionNames.X])
+            xmax = max(xmax, shape[DimensionNames.X])
+            ymin = min(ymin, shape[DimensionNames.Y])
+            ymax = max(ymax, shape[DimensionNames.Y])
 
         if xmin == xmax:
             attributes.append("x: {}".format(xmin))
