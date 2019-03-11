@@ -63,7 +63,7 @@ dimensions           list    Yes       Names of the dimensions.  Dimensions must
 tiles                dict    Yes       See Tiles_
 shape                dict    Yes       Maps each non-geometric dimension to the possible number of values for that
                                        dimension for the tiles in this `Tile Set`_.
-default_tile_shape   tuple   No        Default pixel dimensions of a tile, ordered as x, y.
+default_tile_shape   tuple   No        Default pixel dimensions of a tile, ordered as y, x.
 default_tile_format  string  No        Default file format of the tiles.
 zoom                 dict    No        See Zoom_
 extras               dict    No        Additional application-specific payload.  The vocabulary and the schema are
@@ -89,7 +89,7 @@ indices       dict    Yes       Maps each of the dimensions *not* in geometric s
                                 of the dimensions here must be specified in the `Tile Set`_.  The values of the indices
                                 must be non-negative integers, and every value up to but not including the maximum
                                 specified in the `shape` field of the `Tile Set`_ must be represented.
-tile_shape    tuple   No        Pixel dimensions of a tile, ordered as x, y.  If this is not provided, it defaults to
+tile_shape    tuple   No        Pixel dimensions of a tile, ordered as y, x.  If this is not provided, it defaults to
                                 `default_tile_shape` in the `Tile Set`_).  If neither is provided, the tile shape is
                                 inferred from actual file.
 tile_format   string  No        File format of the tile.  If this is not provided, it defaults to `default_tile_format`

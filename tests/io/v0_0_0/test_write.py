@@ -20,7 +20,7 @@ class TestWrite(unittest.TestCase):
         image = slicedimage.TileSet(
             ["x", "y", "ch", "hyb"],
             {'ch': 2, 'hyb': 2},
-            (100, 100),
+            (120, 80),
         )
 
         for hyb in range(2):
@@ -35,7 +35,7 @@ class TestWrite(unittest.TestCase):
                         'ch': ch,
                     },
                 )
-                tile.numpy_array = np.zeros((100, 100))
+                tile.numpy_array = np.zeros((120, 80))
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
@@ -71,7 +71,7 @@ class TestWrite(unittest.TestCase):
         image = slicedimage.TileSet(
             ["x", "y", "ch", "hyb"],
             {'ch': 2, 'hyb': 2},
-            (100, 100),
+            (120, 80),
         )
 
         for hyb in range(2):
@@ -86,7 +86,7 @@ class TestWrite(unittest.TestCase):
                         'ch': ch,
                     },
                 )
-                tile.numpy_array = np.zeros((100, 100))
+                tile.numpy_array = np.zeros((120, 80))
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
         collection = slicedimage.Collection()
@@ -128,7 +128,7 @@ class TestWrite(unittest.TestCase):
         """
         # write the tiff file
         with TemporaryDirectory() as tempdir:
-            data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
+            data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
             file_path = os.path.join(tempdir, "tile.tiff")
             skimage.io.imsave(file_path, data, plugin="tifffile")
             with open(file_path, "rb") as fh:
@@ -186,7 +186,7 @@ class TestWrite(unittest.TestCase):
         image = slicedimage.TileSet(
             dimensions=["x", "y", "ch", "hyb"],
             shape={'ch': 2, 'hyb': 2},
-            default_tile_shape=(100, 100),
+            default_tile_shape=(120, 80),
         )
 
         for hyb in range(2):
@@ -201,7 +201,7 @@ class TestWrite(unittest.TestCase):
                         'ch': ch,
                     },
                 )
-                tile.numpy_array = np.zeros((100, 100), dtype=np.uint32)
+                tile.numpy_array = np.zeros((120, 80), dtype=np.uint32)
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
@@ -229,8 +229,12 @@ class TestWrite(unittest.TestCase):
 
                     self.assertEqual(len(tiles), 1)
 
-                    expected = np.zeros((100, 100), dtype=np.uint32)
+                    expected = np.zeros((120, 80), dtype=np.uint32)
                     expected[hyb, ch] = 1
 
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())
                     self.assertIsNotNone(tiles[0].sha256)
+
+
+if __name__ == "__main__":
+    unittest.main()

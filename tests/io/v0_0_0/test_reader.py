@@ -59,7 +59,7 @@ class TestFormats(unittest.TestCase):
         """
         with TemporaryDirectory() as tempdir:
             # write the tiff file
-            data = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
+            data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
             skimage.io.imsave(os.path.join(tempdir, "tile.tiff"), data, plugin="tifffile")
 
             # TODO: (ttung) We should really be producing a tileset programmatically and writing it
@@ -102,7 +102,7 @@ class TestFormats(unittest.TestCase):
         image = slicedimage.TileSet(
             ["x", "y", "ch", "hyb"],
             {'ch': 1, 'hyb': 1},
-            (100, 100),
+            (120, 80),
         )
 
         tile = slicedimage.Tile(
@@ -115,7 +115,7 @@ class TestFormats(unittest.TestCase):
                 'ch': 0,
             },
         )
-        tile.numpy_array = np.random.randint(0, 65535, size=(100, 100), dtype=np.uint16)
+        tile.numpy_array = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
         image.add_tile(tile)
 
         with TemporaryDirectory() as tempdir:

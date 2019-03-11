@@ -33,7 +33,7 @@ class TestWrite(unittest.TestCase):
                         'ch': ch,
                     },
                 )
-                tile.numpy_array = np.zeros((100, 100))
+                tile.numpy_array = np.zeros((120, 80))
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
@@ -70,6 +70,6 @@ class TestWrite(unittest.TestCase):
 
                         tile_shape = tiles[0].tile_shape
 
-                        self.assertEqual(tile_shape, (100, 100))
+                        self.assertEqual(tile_shape, (120, 80))
                         self.assertEqual(len(w), 1)
                         self.assertIn("Decoding tile just to obtain shape", str(w[0].message))
