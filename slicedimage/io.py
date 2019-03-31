@@ -7,6 +7,7 @@ import os
 import tempfile
 from io import BytesIO
 
+import pathlib
 from packaging import version
 from six.moves import urllib
 
@@ -70,9 +71,11 @@ def resolve_path_or_url(path_or_url, backend_config=None):
         return resolve_url(path_or_url, backend_config=None)
     except ValueError:
         if os.path.isfile(path_or_url):
+            # convert this to a posix path
+            native_path = pathlib.Path(path_or_url)
             return resolve_url(
-                os.path.basename(path_or_url),
-                baseurl="file://{}".format(os.path.dirname(os.path.abspath(path_or_url))),
+                native_path.name,
+                baseurl=native_path.parent.absolute().as_uri(),
                 backend_config=backend_config
             )
         raise
