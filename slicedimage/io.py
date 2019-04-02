@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import tempfile
+import warnings
 from io import BytesIO
 
 import pathlib
@@ -141,32 +142,35 @@ class Reader(object):
 class Writer(object):
     @staticmethod
     def write_to_path(partition, path, pretty=False, version_class=None, *args, **kwargs):
+        if isinstance(path, str):
+            warnings.warn("Paths should be passed in as pathlib.Path objects", DeprecationWarning)
+            path = pathlib.Path(path)
         if version_class is None:
             version_class = v1_0_0
         document = version_class.Writer().generate_partition_document(
             partition, path, pretty, *args, **kwargs)
         indent = 4 if pretty else None
-        with open(path, "w") as fh:
+        with open(str(path), "w") as fh:
             json.dump(document, fh, indent=indent, sort_keys=pretty)
 
     @staticmethod
     def default_partition_path_generator(parent_partition_path, partition_name):
-        parent_partition_stem = os.path.splitext(os.path.basename(parent_partition_path))[0]
+        parent_partition_stem = parent_partition_path.stem
         partition_file = tempfile.NamedTemporaryFile(
             suffix=".json",
             prefix="{}-".format(parent_partition_stem),
-            dir=os.path.dirname(parent_partition_path),
+            dir=str(parent_partition_path.parent),
             delete=False,
         )
-        return partition_file.name
+        return pathlib.Path(partition_file.name)
 
     @staticmethod
     def default_tile_opener(tileset_path, tile, ext):
-        tile_stemp = os.path.splitext(os.path.basename(tileset_path))[0]
+        tileset_stem = tileset_path.stem
         return tempfile.NamedTemporaryFile(
             suffix=".{}".format(ext),
-            prefix="{}-".format(tile_stemp),
-            dir=os.path.dirname(tileset_path),
+            prefix="{}-".format(tileset_stem),
+            dir=str(tileset_path.parent),
             delete=False,
         )
 
@@ -257,6 +261,11 @@ class v0_0_0(object):
                 tile_opener=Writer.default_tile_opener,
                 tile_format=ImageFormat.NUMPY,
         ):
+            if isinstance(path, str):
+                warnings.warn("Paths should be passed in as pathlib.Path objects",
+                              DeprecationWarning)
+                path = pathlib.Path(path)
+
             json_doc = {
                 CommonPartitionKeys.VERSION: v0_0_0.VERSION,
                 CommonPartitionKeys.EXTRAS: partition.extras,
@@ -272,8 +281,7 @@ class v0_0_0(object):
                         tile_opener=tile_opener,
                         tile_format=tile_format,
                     )
-                    json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(
-                        partition_path)
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = partition_path.name
                 return json_doc
             elif isinstance(partition, TileSet):
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
@@ -303,7 +311,7 @@ class v0_0_0(object):
 
                         buffer_fh.seek(0)
                         tile_fh.write(buffer_fh.read())
-                        tiledoc[TileKeys.FILE] = os.path.basename(tile_fh.name)
+                        tiledoc[TileKeys.FILE] = tile_fh.name
 
                     if tile.tile_shape is not None:
                         tiledoc[TileKeys.TILE_SHAPE] = \
@@ -399,6 +407,11 @@ class v1_0_0(object):
                 tile_opener=Writer.default_tile_opener,
                 tile_format=ImageFormat.NUMPY,
         ):
+            if isinstance(path, str):
+                warnings.warn("Paths should be passed in as pathlib.Path objects",
+                              DeprecationWarning)
+                path = pathlib.Path(path)
+
             json_doc = {
                 CommonPartitionKeys.VERSION: v1_0_0.VERSION,
                 CommonPartitionKeys.EXTRAS: partition.extras,
@@ -413,8 +426,8 @@ class v1_0_0(object):
                         tile_opener=tile_opener,
                         tile_format=tile_format,
                     )
-                    json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(
-                        partition_path)
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = str(
+                        partition_path.relative_to(path.parent))
                 return json_doc
             elif isinstance(partition, TileSet):
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
@@ -443,7 +456,8 @@ class v1_0_0(object):
 
                         buffer_fh.seek(0)
                         tile_fh.write(buffer_fh.read())
-                        tiledoc[TileKeys.FILE] = os.path.basename(tile_fh.name)
+                        tiledoc[TileKeys.FILE] = str(
+                            pathlib.Path(tile_fh.name).relative_to(path.parent))
 
                     if tile.tile_shape is not None:
                         tiledoc[TileKeys.TILE_SHAPE] = format_enum_keyed_dicts(tile.tile_shape)
