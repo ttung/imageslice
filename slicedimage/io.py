@@ -272,8 +272,7 @@ class v0_0_0(object):
                         tile_opener=tile_opener,
                         tile_format=tile_format,
                     )
-                    json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(
-                        partition_path)
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = partition_path
                 return json_doc
             elif isinstance(partition, TileSet):
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
@@ -413,8 +412,7 @@ class v1_0_0(object):
                         tile_opener=tile_opener,
                         tile_format=tile_format,
                     )
-                    json_doc[CollectionKeys.CONTENTS][partition_name] = os.path.basename(
-                        partition_path)
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = partition_path
                 return json_doc
             elif isinstance(partition, TileSet):
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
