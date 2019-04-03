@@ -236,6 +236,78 @@ class TestWrite(unittest.TestCase):
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())
                     self.assertIsNotNone(tiles[0].sha256)
 
+    def test_multi_directory_write_collection(self):
+        """Test that we can write collections with a directory hierarchy."""
+        image = slicedimage.TileSet(
+            ["x", "y", "ch", "hyb"],
+            {'ch': 2, 'hyb': 2},
+            {'y': 120, 'x': 80},
+        )
+
+        for hyb in range(2):
+            for ch in range(2):
+                tile = slicedimage.Tile(
+                    {
+                        'x': (0.0, 0.01),
+                        'y': (0.0, 0.01),
+                    },
+                    {
+                        'hyb': hyb,
+                        'ch': ch,
+                    },
+                )
+                tile.numpy_array = np.zeros((120, 80))
+                tile.numpy_array[hyb, ch] = 1
+                image.add_tile(tile)
+        collection = slicedimage.Collection()
+        collection.add_partition("fov002", image)
+
+        def partition_path_generator(parent_toc_path, toc_name):
+            directory = parent_toc_path.parent / toc_name
+            directory.mkdir()
+            return directory / "{}.json".format(parent_toc_path.stem)
+
+        def tile_opener(tileset_path, tile, ext):
+            directory_path = tempfile.mkdtemp(dir=str(tileset_path.parent))
+            return tempfile.NamedTemporaryFile(
+                suffix=".{}".format(ext),
+                prefix="{}-".format(tileset_path.stem),
+                dir=directory_path,
+                delete=False,
+            )
+
+        with TemporaryDirectory() as tempdir, \
+                tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
+                collection, partition_file.name,
+                partition_path_generator=partition_path_generator,
+                tile_opener=tile_opener,
+            )
+            writer = codecs.getwriter("utf-8")
+            json.dump(partition_doc, writer(partition_file))
+            partition_file.flush()
+
+            basename = os.path.basename(partition_file.name)
+            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
+
+            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+
+            for hyb in range(2):
+                for ch in range(2):
+                    tiles = [
+                        _tile
+                        for _tile in loaded.tiles(
+                            lambda tile: (tile.indices['hyb'] == hyb and
+                                          tile.indices['ch'] == ch))]
+
+                    self.assertEqual(len(tiles), 1)
+
+                    expected = np.zeros((100, 100))
+                    expected[hyb, ch] = 1
+
+                    self.assertEqual(tiles[0].numpy_array.all(), expected.all())
+                    self.assertIsNotNone(tiles[0].sha256)
+
 
 if __name__ == "__main__":
     unittest.main()

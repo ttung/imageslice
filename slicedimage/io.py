@@ -281,7 +281,8 @@ class v0_0_0(object):
                         tile_opener=tile_opener,
                         tile_format=tile_format,
                     )
-                    json_doc[CollectionKeys.CONTENTS][partition_name] = partition_path.name
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = str(
+                        partition_path.relative_to(path.parent))
                 return json_doc
             elif isinstance(partition, TileSet):
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
@@ -311,7 +312,8 @@ class v0_0_0(object):
 
                         buffer_fh.seek(0)
                         tile_fh.write(buffer_fh.read())
-                        tiledoc[TileKeys.FILE] = tile_fh.name
+                        tiledoc[TileKeys.FILE] = str(
+                            pathlib.Path(tile_fh.name).relative_to(path.parent))
 
                     if tile.tile_shape is not None:
                         tiledoc[TileKeys.TILE_SHAPE] = \
