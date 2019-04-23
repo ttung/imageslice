@@ -4,17 +4,11 @@ MODULES=slicedimage tests
 
 test_srcs := $(shell find tests -name 'test_*.py')
 
-test: SLICEDIMAGE_COVERAGE := 1
-test: $(test_srcs) lint
-	coverage combine
-	rm -f .coverage.*
+test: lint
+	pytest -v -n 8 --cov slicedimage
 
 $(test_srcs): %.py :
-	if [ "$(SLICEDIMAGE_COVERAGE)" == 1 ]; then \
-		SLICEDIMAGE_COVERAGE=1 coverage run -p --source=slicedimage -m unittest $(subst /,.,$*); \
-	else \
-		python -m unittest $(subst /,.,$*); \
-	fi
+	python -m unittest $(subst /,.,$*); \
 
 lint:
 	flake8 $(MODULES)
