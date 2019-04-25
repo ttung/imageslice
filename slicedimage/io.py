@@ -7,6 +7,7 @@ import os
 import tempfile
 import warnings
 from io import BytesIO
+from multiprocessing.pool import ThreadPool
 
 import pathlib
 from packaging import version
@@ -178,6 +179,21 @@ class Writer(object):
         raise NotImplementedError()
 
 
+def parse_collection(parse_method, baseurl, backend_config):
+    """Return a method that binds a parse method, a baseurl, and a backend config to a method that
+    accepts name and path of a partition belonging to a collection.  The method should then return
+    the name and the parsed partition data.
+    """
+    def parse(name_relative_path_or_url_tuple):
+        name, relative_path_or_url = name_relative_path_or_url_tuple
+        partition = parse_method(relative_path_or_url, baseurl, backend_config)
+        partition._name_or_url = relative_path_or_url
+
+        return name, partition
+
+    return parse
+
+
 class v0_0_0(object):
     VERSION = "0.0.0"
 
@@ -186,10 +202,14 @@ class v0_0_0(object):
             if CollectionKeys.CONTENTS in json_doc:
                 # this is a Collection
                 result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
-                for name, relative_path_or_url in json_doc[CollectionKeys.CONTENTS].items():
-                    collection = Reader.parse_doc(relative_path_or_url, baseurl, backend_config)
-                    collection._name_or_url = relative_path_or_url
-                    result.add_partition(name, collection)
+                tp = ThreadPool()
+                try:
+                    func = parse_collection(Reader.parse_doc, baseurl, backend_config)
+                    results = tp.map(func, json_doc[CollectionKeys.CONTENTS].items())
+                finally:
+                    tp.terminate()
+                for name, partition in results:
+                    result.add_partition(name, partition)
             elif TileSetKeys.TILES in json_doc:
                 imageformat = json_doc.get(TileSetKeys.DEFAULT_TILE_FORMAT, None)
                 if imageformat is not None:
@@ -336,10 +356,14 @@ class v1_0_0(object):
             if CollectionKeys.CONTENTS in json_doc:
                 # this is a Collection
                 result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
-                for name, relative_path_or_url in json_doc[CollectionKeys.CONTENTS].items():
-                    collection = Reader.parse_doc(relative_path_or_url, baseurl, backend_config)
-                    collection._name_or_url = relative_path_or_url
-                    result.add_partition(name, collection)
+                tp = ThreadPool()
+                try:
+                    func = parse_collection(Reader.parse_doc, baseurl, backend_config)
+                    results = tp.map(func, json_doc[CollectionKeys.CONTENTS].items())
+                finally:
+                    tp.terminate()
+                for name, partition in results:
+                    result.add_partition(name, partition)
             elif TileSetKeys.TILES in json_doc:
                 imageformat = json_doc.get(TileSetKeys.DEFAULT_TILE_FORMAT, None)
                 if imageformat is not None:
