@@ -124,8 +124,8 @@ class Reader(object):
         doc_version = version.parse(json_doc[CommonPartitionKeys.VERSION])
 
         try:
-            if doc_version >= version.parse(v1_0_0.VERSION):
-                parser = v1_0_0.Reader()
+            if doc_version >= version.parse(v0_1_0.VERSION):
+                parser = v0_1_0.Reader()
             elif doc_version >= version.parse(v0_0_0.VERSION):
                 parser = v0_0_0.Reader()
             else:
@@ -147,7 +147,7 @@ class Writer(object):
             warnings.warn("Paths should be passed in as pathlib.Path objects", DeprecationWarning)
             path = pathlib.Path(path)
         if version_class is None:
-            version_class = v1_0_0
+            version_class = v0_1_0
         document = version_class.Writer().generate_partition_document(
             partition, path, pretty, *args, **kwargs)
         indent = 4 if pretty else None
@@ -348,7 +348,7 @@ class v0_0_0(object):
                 return json_doc
 
 
-class v1_0_0(object):
+class v0_1_0(object):
     VERSION = "0.1.0"
 
     class Reader(Reader):
@@ -439,7 +439,7 @@ class v1_0_0(object):
                 path = pathlib.Path(path)
 
             json_doc = {
-                CommonPartitionKeys.VERSION: v1_0_0.VERSION,
+                CommonPartitionKeys.VERSION: v0_1_0.VERSION,
                 CommonPartitionKeys.EXTRAS: partition.extras,
             }
             if isinstance(partition, Collection):
