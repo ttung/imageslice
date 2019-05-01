@@ -497,6 +497,13 @@ class v0_1_0(object):
                 return json_doc
 
 
+VERSIONS = [
+    v0_0_0,
+    v0_1_0,
+]
+"""All the different versions of the file format, in order from oldest to newest."""
+
+
 class CommonPartitionKeys(object):
     VERSION = "version"
     EXTRAS = "extras"
