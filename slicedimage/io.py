@@ -179,7 +179,7 @@ class Writer(object):
         raise NotImplementedError()
 
 
-def parse_collection(parse_method, baseurl, backend_config):
+def _parse_collection(parse_method, baseurl, backend_config):
     """Return a method that binds a parse method, a baseurl, and a backend config to a method that
     accepts name and path of a partition belonging to a collection.  The method should then return
     the name and the parsed partition data.
@@ -204,7 +204,7 @@ class v0_0_0(object):
                 result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
                 tp = ThreadPool()
                 try:
-                    func = parse_collection(Reader.parse_doc, baseurl, backend_config)
+                    func = _parse_collection(Reader.parse_doc, baseurl, backend_config)
                     results = tp.map(func, json_doc[CollectionKeys.CONTENTS].items())
                 finally:
                     tp.terminate()
@@ -358,7 +358,7 @@ class v0_1_0(object):
                 result = Collection(json_doc.get(CommonPartitionKeys.EXTRAS, None))
                 tp = ThreadPool()
                 try:
-                    func = parse_collection(Reader.parse_doc, baseurl, backend_config)
+                    func = _parse_collection(Reader.parse_doc, baseurl, backend_config)
                     results = tp.map(func, json_doc[CollectionKeys.CONTENTS].items())
                 finally:
                     tp.terminate()
