@@ -3,8 +3,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import requests
 from io import BytesIO
 
+from requests.adapters import HTTPAdapter
+from urllib3.util import retry
+
 from slicedimage.urlpath import pathjoin
 from ._base import Backend, verify_checksum
+
+
+RETRY_STATUS_CODES = frozenset({500, 502, 503, 504})
 
 
 class HttpBackend(Backend):
@@ -23,7 +29,14 @@ class _UrlContextManager(object):
         self.handle = None
 
     def __enter__(self):
-        resp = requests.get(self.url)
+        session = requests.Session()
+        retry_policy = retry.Retry(
+            connect=10, read=10, status=10, backoff_factor=0.1, status_forcelist=RETRY_STATUS_CODES)
+        adapter = HTTPAdapter(max_retries=retry_policy)
+        session.mount("http://", adapter)
+        session.mount("https://", adapter)
+
+        resp = session.get(self.url)
         resp.raise_for_status()
         self.handle = BytesIO(resp.content)
         verify_checksum(self.handle, self.checksum_sha256)

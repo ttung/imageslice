@@ -3,6 +3,7 @@ import hashlib
 import os
 import sys
 import tempfile
+import threading
 import time
 
 import pytest
@@ -10,6 +11,7 @@ import requests
 from requests import HTTPError
 
 from slicedimage.backends import ChecksumValidationError, HttpBackend
+from slicedimage.backends import _http
 from tests.utils import (
     ContextualChildProcess,
     TemporaryDirectory,
@@ -121,3 +123,32 @@ def test_error(http_server):
         with pytest.raises(ChecksumValidationError):
             with http_backend.read_contextmanager("tileset.json") as cm:
                 cm.read()
+
+
+def test_retry(monkeypatch, http_server):
+    """
+    Verifies that the retry logic is reasonable.  Since we normally only retry on http connectivity
+    issues, or 50x errors, we monkeypatch the list of HTTP status codes we retry on to {404}, and
+    induce a 404 error.  We also start a thread that creates the file we are looking for.
+
+    Then we attempt to fetch the file.  It should fail a few times, and then successfully return the
+    file.
+    """
+    tempdir, port = http_server
+    http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=port))
+
+    def sleep_and_make_file():
+        time.sleep(5.0)
+        data = os.urandom(1024)
+        with open(os.path.join(tempdir, "tileset.json"), "w") as fh:
+            fh.write(data)
+            fh.flush()
+
+    thread = threading.Thread(target=sleep_and_make_file)
+    thread.setDaemon(True)
+    thread.start()
+
+    with monkeypatch.context() as mc:
+        mc.setattr(_http, "RETRY_STATUS_CODES", frozenset({404}))
+        with http_backend.read_contextmanager("tileset.json") as cm:
+            cm.read()
