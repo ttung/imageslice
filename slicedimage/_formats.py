@@ -1,11 +1,20 @@
 import enum
+from pathlib import Path
+
+
+def to_file_obj_or_str(obj):
+    """skimage methods only accept a file-like object or a string path.  This method converts a
+    file-like object, str, or pathlib.Path into a file-like object or a string path."""
+    if isinstance(obj, Path):
+        return str(obj)
+    return obj
 
 
 def tiff_reader():
     # lazy load skimage
     import skimage.io
 
-    return skimage.io.imread
+    return lambda f: skimage.io.imread(to_file_obj_or_str(f))
 
 
 def numpy_reader():
@@ -23,7 +32,7 @@ def tiff_writer():
     # lazy load skimage
     import skimage.io
 
-    return lambda f, arr: skimage.io.imsave(f, arr, plugin="tifffile")
+    return lambda f, arr: skimage.io.imsave(to_file_obj_or_str(f), arr, plugin="tifffile")
 
 
 def numpy_writer():
