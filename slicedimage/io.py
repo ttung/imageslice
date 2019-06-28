@@ -13,7 +13,7 @@ import pathlib
 from packaging import version
 from six.moves import urllib
 
-from .backends import CachingBackend, DiskBackend, HttpBackend, SIZE_LIMIT
+from .backends import CachingBackend, DiskBackend, HttpBackend, S3Backend, SIZE_LIMIT
 from .urlpath import pathjoin, pathsplit
 from ._collection import Collection
 from ._formats import ImageFormat
@@ -34,32 +34,38 @@ def infer_backend(baseurl, backend_config=None):
      - ["caching"]["size_limit"] (default: SIZE_LIMIT)
 
     """
+    if backend_config is None:
+        backend_config = {}
 
     parsed = urllib.parse.urlparse(baseurl)
 
+    if parsed.scheme == "file":
+        return DiskBackend(parsed.path)
+
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
-
-        cache_config = {}
-        if isinstance(backend_config, dict):
-            cache_config = backend_config.get("caching", cache_config)
-
-        cache_dir = cache_config.get("directory", None)
-        if cache_dir is not None:
-            cache_dir = os.path.expanduser(cache_dir)
-            size_limit = cache_config.get("size_limit", SIZE_LIMIT)
-            if size_limit > 0:
-                debug = cache_config.get("debug", False)
-                if debug:
-                    print("> caching {} to {} (size_limit: {})".format(
-                        baseurl, cache_dir, size_limit))
-                backend = CachingBackend(cache_dir, backend, size_limit)
-    elif parsed.scheme == "file":
-        backend = DiskBackend(parsed.path)
+    elif parsed.scheme == "s3":
+        s3_config = backend_config.get("s3", {})
+        backend = S3Backend(baseurl, s3_config)
     else:
         raise ValueError(
             "Unable to infer backend for url {}, please verify that baseurl points to a valid "
             "directory or web address".format(baseurl))
+
+    # these backends might use a cache.
+    cache_config = backend_config.get("caching", {})
+
+    cache_dir = cache_config.get("directory", None)
+    if cache_dir is not None:
+        cache_dir = os.path.expanduser(cache_dir)
+        size_limit = cache_config.get("size_limit", SIZE_LIMIT)
+        if size_limit > 0:
+            debug = cache_config.get("debug", False)
+            if debug:
+                print("> caching {} to {} (size_limit: {})".format(
+                    baseurl, cache_dir, size_limit))
+            backend = CachingBackend(cache_dir, backend, size_limit)
+
     return backend
 
 
