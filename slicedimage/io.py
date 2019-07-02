@@ -16,6 +16,7 @@ from six.moves import urllib
 from .backends import CachingBackend, DiskBackend, HttpBackend, S3Backend, SIZE_LIMIT
 from .urlpath import pathjoin, pathsplit
 from ._collection import Collection
+from ._compat import fspath
 from ._formats import ImageFormat
 from ._tile import Tile
 from ._tileset import TileSet
@@ -40,7 +41,9 @@ def infer_backend(baseurl, backend_config=None):
     parsed = urllib.parse.urlparse(baseurl)
 
     if parsed.scheme == "file":
-        return DiskBackend(parsed.path)
+        posix_path = pathlib.PurePosixPath(parsed.path)
+        local_path = pathlib.Path(*posix_path.parts)
+        return DiskBackend(fspath(local_path))
 
     if parsed.scheme in ("http", "https"):
         backend = HttpBackend(baseurl)
