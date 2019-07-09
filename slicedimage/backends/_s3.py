@@ -1,12 +1,10 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
+import urllib.parse
 from io import BytesIO
 from pathlib import PurePosixPath
 
 import boto3
 from botocore import UNSIGNED
 from botocore.config import Config
-from six.moves import urllib
 
 from ._base import Backend, verify_checksum
 
@@ -41,7 +39,7 @@ class S3Backend(Backend):
         return _S3ContextManager(self._bucket.Object(key), checksum_sha256)
 
 
-class _S3ContextManager(object):
+class _S3ContextManager:
     def __init__(self, s3_obj, checksum_sha256):
         self.s3_obj = s3_obj
         self.checksum_sha256 = checksum_sha256

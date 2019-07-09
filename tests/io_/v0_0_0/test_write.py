@@ -11,7 +11,7 @@ import skimage.io
 import slicedimage
 from slicedimage import ImageFormat
 from slicedimage._dimensions import DimensionNames
-from tests.utils import TemporaryDirectory, build_skeleton_manifest
+from tests.utils import build_skeleton_manifest
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 
@@ -40,7 +40,7 @@ class TestWrite(unittest.TestCase):
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
-        with TemporaryDirectory() as tempdir, \
+        with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
                 image, partition_file.name)
@@ -93,7 +93,7 @@ class TestWrite(unittest.TestCase):
         collection = slicedimage.Collection()
         collection.add_partition("fov002", image)
 
-        with TemporaryDirectory() as tempdir, \
+        with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
                 collection, partition_file.name)
@@ -128,7 +128,7 @@ class TestWrite(unittest.TestCase):
         numpy version can load without an error.
         """
         # write the tiff file
-        with TemporaryDirectory() as tempdir:
+        with tempfile.TemporaryDirectory() as tempdir:
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
             file_path = os.path.join(tempdir, "tile.tiff")
             skimage.io.imsave(file_path, data, plugin="tifffile")
@@ -166,7 +166,7 @@ class TestWrite(unittest.TestCase):
                 {"cache": {"size_limit": 0}},  # disabled
             )
 
-            with TemporaryDirectory() as output_tempdir, \
+            with tempfile.TemporaryDirectory() as output_tempdir, \
                     tempfile.NamedTemporaryFile(
                         suffix=".json", dir=output_tempdir) as partition_file:
                 partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
@@ -206,7 +206,7 @@ class TestWrite(unittest.TestCase):
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
-        with TemporaryDirectory() as tempdir, \
+        with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
             # create the tileset and save it.
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(

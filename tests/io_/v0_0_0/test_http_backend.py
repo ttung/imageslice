@@ -12,7 +12,6 @@ from requests import HTTPError
 from slicedimage.backends import ChecksumValidationError, HttpBackend
 from tests.utils import (
     ContextualChildProcess,
-    TemporaryDirectory,
     unused_tcp_port,
 )
 
@@ -20,7 +19,7 @@ from tests.utils import (
 class TestHttpBackend(unittest.TestCase):
     def setUp(self, timeout_seconds=5):
         self.contexts = []
-        self.tempdir = TemporaryDirectory()
+        self.tempdir = tempfile.TemporaryDirectory()
         self.contexts.append(self.tempdir)
         self.port = unused_tcp_port()
 

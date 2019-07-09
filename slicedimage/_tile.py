@@ -1,12 +1,10 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import warnings
 
 from ._dimensions import DimensionNames
 from ._typeformatting import format_enum_keyed_dicts, format_tile_coordinates
 
 
-class Tile(object):
+class Tile:
     def __init__(self, coordinates, indices, tile_shape=None, sha256=None, extras=None):
         self.coordinates = format_tile_coordinates(coordinates)
         self.indices = format_enum_keyed_dicts(indices)

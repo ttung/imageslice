@@ -14,14 +14,13 @@ from slicedimage.backends import ChecksumValidationError, HttpBackend
 from slicedimage.backends import _http
 from tests.utils import (
     ContextualChildProcess,
-    TemporaryDirectory,
     unused_tcp_port,
 )
 
 
 @pytest.fixture(scope="module")
 def http_server(timeout_seconds=5):
-    with TemporaryDirectory() as tempdir:
+    with tempfile.  TemporaryDirectory() as tempdir:
 
         port = unused_tcp_port()
 

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import io
 from threading import Lock
 
@@ -34,7 +32,7 @@ class CachingBackend(Backend):
         return self._authoritative_backend.write_file_handle(name)
 
 
-class _CachingBackendContextManager(object):
+class _CachingBackendContextManager:
     def __init__(self, authoritative_backend, cache, name, checksum_sha256):
         self.authoritative_backend = authoritative_backend
         self.cache = cache

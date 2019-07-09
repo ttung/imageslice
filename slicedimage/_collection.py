@@ -1,9 +1,7 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from ._tileset import TileSet
 
 
-class Collection(object):
+class Collection:
     def __init__(self, extras=None):
         self.extras = extras
         self._partitions = dict()

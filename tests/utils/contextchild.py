@@ -1,7 +1,7 @@
 import subprocess
 
 
-class ContextualChildProcess(object):
+class ContextualChildProcess:
     """
     Provides a context manager for wrapping a child process.
     """

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from ._dimensions import DimensionNames
 from ._typeformatting import (
     format_enum_keyed_dicts,
@@ -8,7 +6,7 @@ from ._typeformatting import (
 )
 
 
-class TileSet(object):
+class TileSet:
     def __init__(
             self,
             dimensions,

@@ -1,6 +1,7 @@
 import collections
 import json
 import os
+import tempfile
 import unittest
 
 import numpy as np
@@ -8,7 +9,7 @@ import skimage.io
 
 import slicedimage
 from slicedimage._dimensions import DimensionNames
-from tests.utils import build_skeleton_manifest, TemporaryDirectory
+from tests.utils import build_skeleton_manifest
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 
@@ -58,7 +59,7 @@ class TestFormats(unittest.TestCase):
         """
         Generate a tileset consisting of a single TIFF tile, and then read it.
         """
-        with TemporaryDirectory() as tempdir:
+        with tempfile.TemporaryDirectory() as tempdir:
             # write the tiff file
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
             skimage.io.imsave(os.path.join(tempdir, "tile.tiff"), data, plugin="tifffile")
@@ -119,7 +120,7 @@ class TestFormats(unittest.TestCase):
         tile.numpy_array = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
         image.add_tile(tile)
 
-        with TemporaryDirectory() as tempdir:
+        with tempfile.TemporaryDirectory() as tempdir:
             partition_path = os.path.join(tempdir, "tileset.json")
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
                 image, partition_path)

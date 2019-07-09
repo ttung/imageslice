@@ -6,4 +6,3 @@ pathlib;python_version<"3.0"
 numpy
 requests
 scikit-image
-six

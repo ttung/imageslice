@@ -10,7 +10,6 @@ import numpy as np
 import slicedimage
 from slicedimage._dimensions import DimensionNames
 from slicedimage.io import TileKeys, TileSetKeys
-from tests.utils import TemporaryDirectory
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 
@@ -38,7 +37,7 @@ class TestMissingShape(unittest.TestCase):
                 tile.numpy_array[hyb, ch] = 1
                 image.add_tile(tile)
 
-        with TemporaryDirectory() as tempdir, \
+        with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
                 image, partition_file.name)

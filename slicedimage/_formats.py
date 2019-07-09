@@ -1,12 +1,13 @@
 import enum
 from pathlib import Path
+from ._compat import fspath
 
 
 def to_file_obj_or_str(obj):
     """skimage methods only accept a file-like object or a string path.  This method converts a
     file-like object, str, or pathlib.Path into a file-like object or a string path."""
     if isinstance(obj, Path):
-        return str(obj)
+        return fspath(obj)
     return obj
 
 

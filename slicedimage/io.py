@@ -1,17 +1,15 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import codecs
 import hashlib
 import json
 import os
 import tempfile
+import urllib.parse
 import warnings
 from io import BytesIO
 from multiprocessing.pool import ThreadPool
 
 import pathlib
 from packaging import version
-from six.moves import urllib
 
 from .backends import CachingBackend, DiskBackend, HttpBackend, S3Backend, SIZE_LIMIT
 from .urlpath import pathjoin, pathsplit
@@ -123,7 +121,7 @@ def resolve_url(name_or_url, baseurl=None, backend_config=None):
         return _resolve_absolute_url(absolute_url, backend_config)
 
 
-class Reader(object):
+class Reader:
     @staticmethod
     def parse_doc(name_or_url, baseurl, backend_config=None):
         backend, name, baseurl = resolve_url(name_or_url, baseurl, backend_config)
@@ -149,7 +147,7 @@ class Reader(object):
         raise NotImplementedError()
 
 
-class Writer(object):
+class Writer:
     @staticmethod
     def write_to_path(partition, path, pretty=False, version_class=None, *args, **kwargs):
         if isinstance(path, str):
@@ -203,7 +201,7 @@ def _parse_collection(parse_method, baseurl, backend_config):
     return parse
 
 
-class v0_0_0(object):
+class v0_0_0:
     VERSION = "0.0.0"
 
     class Reader(Reader):
@@ -357,7 +355,7 @@ class v0_0_0(object):
                 return json_doc
 
 
-class v0_1_0(object):
+class v0_1_0:
     VERSION = "0.1.0"
 
     class Reader(Reader):
@@ -513,7 +511,7 @@ VERSIONS = [
 """All the different versions of the file format, in order from oldest to newest."""
 
 
-class CommonPartitionKeys(object):
+class CommonPartitionKeys:
     VERSION = "version"
     EXTRAS = "extras"
 
@@ -531,7 +529,7 @@ class TileSetKeys(CommonPartitionKeys):
     ZOOM = "zoom"
 
 
-class TileKeys(object):
+class TileKeys:
     FILE = "file"
     COORDINATES = "coordinates"
     INDICES = "indices"

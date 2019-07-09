@@ -3,15 +3,9 @@ import socket
 
 from tests.utils.contextchild import ContextualChildProcess
 
-try:
-    from tempfile import TemporaryDirectory
-except ImportError:
-    from .tempdir import TemporaryDirectory
-
 
 __all__ = [
-    TemporaryDirectory,
-    ContextualChildProcess,
+    'ContextualChildProcess',
     'unused_tcp_port',
     'build_skeleton_manifest'
 ]

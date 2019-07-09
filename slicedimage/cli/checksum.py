@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 from slicedimage import Reader, Writer
 from slicedimage.io import resolve_path_or_url
 from ._base import CliCommand
@@ -38,7 +36,7 @@ class ChecksumCommand(CliCommand):
 
 
 def fake_file_opener(partition_path, tile, ext):
-    class null_file_handle(object):
+    class null_file_handle:
         def __init__(self, name):
             self.name = name
 

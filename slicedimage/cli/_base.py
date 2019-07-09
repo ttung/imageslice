@@ -1,7 +1,4 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-
-class CliCommand(object):
+class CliCommand:
     @classmethod
     def register_parser(cls, subparser_root):
         """

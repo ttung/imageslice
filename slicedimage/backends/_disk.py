@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import os
 
 from ._base import Backend, verify_checksum
@@ -16,7 +14,7 @@ class DiskBackend(Backend):
         return open(os.path.join(self._basedir, name), "wb")
 
 
-class _FileLikeContextManager(object):
+class _FileLikeContextManager:
     def __init__(self, path, checksum_sha256):
         self.path = path
         self.checksum_sha256 = checksum_sha256

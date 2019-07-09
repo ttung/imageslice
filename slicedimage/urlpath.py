@@ -1,6 +1,5 @@
+import urllib.parse
 import posixpath
-
-from six.moves import urllib
 
 
 def pathsplit(url):

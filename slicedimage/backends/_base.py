@@ -1,9 +1,7 @@
-from __future__ import absolute_import, division, print_function, unicode_literals
-
 import hashlib
 
 
-class Backend(object):
+class Backend:
     def read_contextmanager(self, name, checksum_sha256=None):
         """
         Returns a context manager, that when entered, should return a file-like object that can be
