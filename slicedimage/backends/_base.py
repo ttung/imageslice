@@ -1,7 +1,9 @@
 import hashlib
+from abc import abstractmethod
 
 
 class Backend:
+    @abstractmethod
     def read_contextmanager(self, name, checksum_sha256=None):
         """
         Returns a context manager, that when entered, should return a file-like object that can be
@@ -21,6 +23,7 @@ class Backend:
         """
         raise NotImplementedError()
 
+    @abstractmethod
     def write_file_handle(self, name):
         raise NotImplementedError()
 

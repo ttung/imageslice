@@ -48,6 +48,7 @@ class Reader:
     def can_parse(cls, doc_version: version.Version):
         raise NotImplementedError()
 
+    @abstractmethod
     def parse(self, json_doc, baseurl, backend_config):
         raise NotImplementedError()
 
@@ -87,6 +88,7 @@ class Writer:
             delete=False,
         )
 
+    @abstractmethod
     def generate_partition_document(self, partition, path, pretty=False, *args, **kwargs):
         raise NotImplementedError()
 

@@ -1,3 +1,6 @@
+from abc import abstractmethod
+
+
 class CliCommand:
     @classmethod
     def register_parser(cls, subparser_root):
@@ -9,5 +12,6 @@ class CliCommand:
         raise NotImplementedError()
 
     @classmethod
+    @abstractmethod
     def run_command(cls, args):
         raise NotImplementedError()

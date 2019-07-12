@@ -1,3 +1,5 @@
+from abc import abstractmethod
+
 from ._dimensions import DimensionNames
 from ._typeformatting import (
     format_enum_keyed_dicts,
@@ -60,6 +62,7 @@ class TileSet:
         shape = ", ".join(attributes)
         return "<slicedimage.TileSet ({shape})>".format(shape=shape)
 
+    @abstractmethod
     def validate(self):
         raise NotImplementedError()
 
