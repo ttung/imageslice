@@ -9,7 +9,7 @@ import numpy as np
 
 import slicedimage
 from slicedimage._dimensions import DimensionNames
-from slicedimage.io import TileKeys, TileSetKeys
+from slicedimage.io._keys import TileKeys, TileSetKeys
 
 baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
 

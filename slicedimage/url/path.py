@@ -1,8 +1,8 @@
-import urllib.parse
 import posixpath
+import urllib.parse
 
 
-def pathsplit(url):
+def split(url):
     parsed = urllib.parse.urlparse(url)
     return (
         urllib.parse.urlunparse(
@@ -18,7 +18,7 @@ def pathsplit(url):
     )
 
 
-def pathjoin(url, *segments):
+def join(url, *segments):
     parsed = urllib.parse.urlparse(url)
     return urllib.parse.urlunparse(
         (parsed.scheme,

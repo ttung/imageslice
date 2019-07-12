@@ -4,7 +4,7 @@ from io import BytesIO
 from requests.adapters import HTTPAdapter
 from urllib3.util import retry
 
-from slicedimage.urlpath import pathjoin
+from slicedimage import url
 from ._base import Backend, verify_checksum
 
 
@@ -16,7 +16,7 @@ class HttpBackend(Backend):
         self._baseurl = baseurl
 
     def read_contextmanager(self, name, checksum_sha256=None):
-        parsed = pathjoin(self._baseurl, name)
+        parsed = url.path.join(self._baseurl, name)
         return _UrlContextManager(parsed, checksum_sha256)
 
 

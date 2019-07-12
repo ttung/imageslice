@@ -3,7 +3,7 @@ import tempfile
 import unittest
 import uuid
 
-from slicedimage.io import resolve_path_or_url, resolve_url
+from slicedimage.url.resolve import resolve_path_or_url, resolve_url
 
 
 class TestResolvePathOrUrl(unittest.TestCase):

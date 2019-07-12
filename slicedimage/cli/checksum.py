@@ -1,5 +1,5 @@
 from slicedimage import Reader, Writer
-from slicedimage.io import resolve_path_or_url
+from slicedimage.url.resolve import resolve_path_or_url
 from ._base import CliCommand
 
 
