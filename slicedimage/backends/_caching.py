@@ -1,4 +1,5 @@
 import io
+from typing import MutableMapping
 from threading import Lock
 
 from diskcache import Cache
@@ -11,7 +12,7 @@ CACHE_VERSION = "v1"
 
 class CachingBackend(Backend):
     _LOCK = Lock()
-    _CACHE = {}
+    _CACHE = {}  # type: MutableMapping[str, Cache]
 
     def __init__(self, cacheroot, authoritative_backend, size_limit=SIZE_LIMIT):
         with CachingBackend._LOCK:

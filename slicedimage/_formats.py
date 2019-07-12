@@ -55,7 +55,7 @@ class ImageFormat(enum.Enum):
     writer_provider, file_extension, {alternative_extensions}).
     """
     TIFF = (tiff_reader, tiff_writer, "tiff", {"tif"})
-    NUMPY = (numpy_reader, numpy_writer, "npy", {})
+    NUMPY = (numpy_reader, numpy_writer, "npy", None)
 
     def __init__(
             self,
