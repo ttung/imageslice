@@ -57,8 +57,9 @@ class TestWrite(unittest.TestCase):
                 for ch in range(2):
                     tiles = [_tile
                              for _tile in loaded.tiles(
-                                 lambda tile: (tile.indices['hyb'] == hyb and
-                                               tile.indices['ch'] == ch))]
+                                 lambda tile: (
+                                     tile.indices['hyb'] == hyb
+                                     and tile.indices['ch'] == ch))]
 
                     self.assertEqual(len(tiles), 1)
 
@@ -110,8 +111,9 @@ class TestWrite(unittest.TestCase):
                 for ch in range(2):
                     tiles = [_tile
                              for _tile in loaded.tiles(
-                                 lambda tile: (tile.indices['hyb'] == hyb and
-                                               tile.indices['ch'] == ch))]
+                                 lambda tile: (
+                                     tile.indices['hyb'] == hyb
+                                     and tile.indices['ch'] == ch))]
 
                     self.assertEqual(len(tiles), 1)
 
@@ -225,8 +227,9 @@ class TestWrite(unittest.TestCase):
                 for ch in range(2):
                     tiles = [_tile
                              for _tile in loaded.tiles(
-                                 lambda tile: (tile.indices['hyb'] == hyb and
-                                               tile.indices['ch'] == ch))]
+                                 lambda tile: (
+                                     tile.indices['hyb'] == hyb
+                                     and tile.indices['ch'] == ch))]
 
                     self.assertEqual(len(tiles), 1)
 
