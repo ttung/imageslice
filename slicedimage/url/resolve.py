@@ -5,7 +5,7 @@ import pathlib
 
 from slicedimage._compat import fspath
 from slicedimage.backends import CachingBackend, DiskBackend, HttpBackend, S3Backend, SIZE_LIMIT
-from .path import join, split
+from .path import get_absolute_url
 
 
 def infer_backend(baseurl, backend_config=None):
@@ -77,17 +77,6 @@ def resolve_path_or_url(path_or_url, backend_config=None):
         raise
 
 
-def _resolve_absolute_url(absolute_url, backend_config):
-    """
-    Given a string that is an absolute URL, return a tuple consisting of: a
-    :py:class:`slicedimage.backends._base.Backend`, the basename of the object, and the baseurl of
-    the object.
-    """
-    splitted = split(absolute_url)
-    backend = infer_backend(splitted[0], backend_config)
-    return backend, splitted[1], splitted[0]
-
-
 def resolve_url(name_or_url, baseurl=None, backend_config=None):
     """
     Given a string that can either be a name or a fully qualified url, return a tuple consisting of:
@@ -97,12 +86,5 @@ def resolve_url(name_or_url, baseurl=None, backend_config=None):
     If the string is a name and not a fully qualified url, then baseurl must be set.  If the string
     is a fully qualified url, then baseurl is ignored.
     """
-    try:
-        # assume it's a fully qualified url.
-        return _resolve_absolute_url(name_or_url, backend_config)
-    except ValueError:
-        if baseurl is None:
-            # oh, we have no baseurl.  punt.
-            raise
-        absolute_url = join(baseurl, name_or_url)
-        return _resolve_absolute_url(absolute_url, backend_config)
+    name, baseurl = get_absolute_url(name_or_url, baseurl)
+    return infer_backend(baseurl, backend_config=backend_config), name, baseurl
