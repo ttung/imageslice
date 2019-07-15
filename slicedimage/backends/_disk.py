@@ -10,7 +10,7 @@ class DiskBackend(Backend):
     def read_contextmanager(self, name, checksum_sha256=None):
         return _FileLikeContextManager(os.path.join(self._basedir, name), checksum_sha256)
 
-    def write_file_handle(self, name=None):
+    def write_file_handle(self, name):
         return open(os.path.join(self._basedir, name), "wb")
 
 

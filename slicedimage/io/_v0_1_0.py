@@ -1,10 +1,7 @@
-import hashlib
 import os
-import warnings
-from io import BytesIO
 from multiprocessing.pool import ThreadPool
+from typing import Optional, Union
 
-import pathlib
 from packaging import version
 
 from slicedimage._collection import Collection
@@ -12,6 +9,7 @@ from slicedimage._formats import ImageFormat
 from slicedimage._tile import Tile
 from slicedimage._tileset import TileSet
 from slicedimage._typeformatting import format_enum_keyed_dicts
+from slicedimage.url.path import calculate_relative_url
 from slicedimage.url.resolve import resolve_url
 from . import _base
 from ._keys import (
@@ -109,18 +107,15 @@ class v0_1_0:
     class Writer(_base.Writer):
         def generate_partition_document(
                 self,
-                partition,
-                path,
-                pretty=False,
-                partition_path_generator=_base.Writer.default_partition_path_generator,
-                tile_opener=_base.Writer.default_tile_opener,
+                partition: Union[Collection, TileSet],
+                url: str,
+                pretty: bool = False,
+                writer_contract: Optional[_base.WriterContract] = None,
                 tile_format=ImageFormat.NUMPY,
+                *args, **kwargs
         ):
-            if isinstance(path, str):
-                warnings.warn("Paths should be passed in as pathlib.Path objects",
-                              DeprecationWarning)
-                path = pathlib.Path(path)
-
+            if writer_contract is None:
+                writer_contract = _base.WriterContract()
             json_doc = {
                 CommonPartitionKeys.VERSION: v0_1_0.VERSION,
                 CommonPartitionKeys.EXTRAS: partition.extras,
@@ -128,15 +123,14 @@ class v0_1_0:
             if isinstance(partition, Collection):
                 json_doc[CollectionKeys.CONTENTS] = dict()
                 for partition_name, partition in partition._partitions.items():
-                    partition_path = partition_path_generator(path, partition_name)
-                    _base.Writer.write_to_path(
-                        partition, partition_path, pretty,
-                        partition_path_generator=partition_path_generator,
-                        tile_opener=tile_opener,
+                    partition_url = writer_contract.partition_url_generator(url, partition_name)
+                    _base.Writer.write_to_url(
+                        partition, partition_url, pretty,
+                        writer_contract=writer_contract,
                         tile_format=tile_format,
                     )
-                    json_doc[CollectionKeys.CONTENTS][partition_name] = str(
-                        partition_path.relative_to(path.parent))
+                    json_doc[CollectionKeys.CONTENTS][partition_name] = calculate_relative_url(
+                        url, partition_url)
                 return json_doc
             elif isinstance(partition, TileSet):
                 json_doc[TileSetKeys.DIMENSIONS] = tuple(partition.dimensions)
@@ -156,21 +150,13 @@ class v0_1_0:
                         TileKeys.INDICES: tile.indices,
                     }
 
-                    with tile_opener(path, tile, tile_format.file_ext) as tile_fh:
-                        buffer_fh = BytesIO()
-                        tile.write(buffer_fh, tile_format)
-
-                        buffer_fh.seek(0)
-                        tile.sha256 = hashlib.sha256(buffer_fh.getvalue()).hexdigest()
-
-                        buffer_fh.seek(0)
-                        tile_fh.write(buffer_fh.read())
-                        tiledoc[TileKeys.FILE] = str(
-                            pathlib.Path(tile_fh.name).relative_to(path.parent))
+                    tile_url = writer_contract.tile_url_generator(url, tile, tile_format.file_ext)
+                    tiledoc[TileKeys.SHA256] = writer_contract.write_tile(
+                        tile_url, tile, tile_format)
+                    tiledoc[TileKeys.FILE] = calculate_relative_url(url, tile_url)
 
                     if tile.tile_shape is not None:
                         tiledoc[TileKeys.TILE_SHAPE] = format_enum_keyed_dicts(tile.tile_shape)
-                    tiledoc[TileKeys.SHA256] = tile.sha256
                     if tile_format is not None:
                         tiledoc[TileKeys.TILE_FORMAT] = tile_format.name
                     if len(tile.extras) != 0:

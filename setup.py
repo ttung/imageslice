@@ -7,7 +7,7 @@ install_requires = [line.rstrip() for line in open(os.path.join(os.path.dirname(
 
 setuptools.setup(
     name="slicedimage",
-    version="3.2.0",
+    version="4.0.0",
     description="Library to access sliced imaging data",
     author="Tony Tung",
     author_email="ttung@chanzuckerberg.com",

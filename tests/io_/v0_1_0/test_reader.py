@@ -123,7 +123,7 @@ class TestFormats(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir:
             partition_path = os.path.join(tempdir, "tileset.json")
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                image, partition_path)
+                image, "file://{}".format(partition_path))
             with open(partition_path, "w") as fh:
                 json.dump(partition_doc, fh)
 

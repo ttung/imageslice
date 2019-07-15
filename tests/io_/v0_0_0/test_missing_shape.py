@@ -40,7 +40,7 @@ class TestMissingShape(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                image, partition_file.name)
+                image, "file://{}".format(partition_file.name))
 
             # remove the shape information from the tiles.
             for tile in partition_doc[TileSetKeys.TILES]:
