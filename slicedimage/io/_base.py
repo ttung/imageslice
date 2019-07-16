@@ -329,6 +329,7 @@ def _parse_collection(parse_method, baseurl, backend_config):
     """
     def parse(name_relative_path_or_url_tuple):
         name, relative_path_or_url = name_relative_path_or_url_tuple
+
         partition = parse_method(relative_path_or_url, baseurl, backend_config)
         partition._name_or_url = relative_path_or_url
 
