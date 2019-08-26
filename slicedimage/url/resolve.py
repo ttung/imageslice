@@ -6,6 +6,7 @@ import pathlib
 from slicedimage._compat import fspath
 from slicedimage.backends import CachingBackend, DiskBackend, HttpBackend, S3Backend, SIZE_LIMIT
 from .path import get_absolute_url
+from urllib.parse import unquote
 
 
 def infer_backend(baseurl, backend_config=None):
@@ -75,7 +76,7 @@ def resolve_path_or_url(path_or_url, backend_config=None):
             native_path = pathlib.Path(path_or_url)
             return resolve_url(
                 native_path.name,
-                baseurl=native_path.parent.absolute().as_uri(),
+                baseurl=unquote(native_path.parent.absolute().as_uri()),
                 backend_config=backend_config
             )
         raise
