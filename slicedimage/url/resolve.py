@@ -29,9 +29,9 @@ def infer_backend(baseurl, backend_config=None):
         if os.name == "nt":
             # pathlib can parse c:/windows/xxx, but not /c:/windows/xxx.  however, url paths always
             # start with a /
-            local_path = pathlib.Path(parsed.path[1:])
+            local_path = pathlib.Path(urllib.parse.unquote(parsed.path[1:]))
         else:
-            local_path = pathlib.Path(parsed.path)
+            local_path = pathlib.Path(urllib.parse.unquote(parsed.path))
         return DiskBackend(fspath(local_path))
 
     if parsed.scheme in ("http", "https"):

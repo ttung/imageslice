@@ -25,7 +25,7 @@ def _parse_absolute_url(absolute_url) -> Tuple[str, str]:
         raise ValueError("Not an absolute url.")
 
     return (
-        posixpath.basename(parsed.path),
+        posixpath.basename(urllib.parse.unquote(parsed.path)),
         urllib.parse.urlunparse(
             (parsed.scheme,
              parsed.netloc,
