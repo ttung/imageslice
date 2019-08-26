@@ -12,11 +12,14 @@ def to_file_obj_or_str(obj):
 
 
 def tiff_reader():
-    # lazy load skimage
-    import skimage.io
+    # lazy load tifffile
+    import tifffile
 
-    return lambda f: skimage.io.imread(to_file_obj_or_str(f))
+    def reader(f):
+        with tifffile.TiffFile(to_file_obj_or_str(f)) as tiff:
+            return tiff.asarray(maxworkers=1)
 
+    return reader
 
 def numpy_reader():
     # lazy load numpy
@@ -30,10 +33,14 @@ def tiff_writer():
     Return a method that accepts (file, array) and saves it to the file.  File may be a file-like
     object, str, or pathlib.Path.
     """
-    # lazy load skimage
-    import skimage.io
+    # lazy load tifffile
+    import tifffile
 
-    return lambda f, arr: skimage.io.imsave(to_file_obj_or_str(f), arr, plugin="tifffile")
+    def writer(f, arr):
+        with tifffile.TiffWriter(to_file_obj_or_str(f)) as tiff:
+            return tiff.save(arr, datetime=None)
+
+    return writer
 
 
 def numpy_writer():

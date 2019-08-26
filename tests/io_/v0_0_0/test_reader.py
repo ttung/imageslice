@@ -4,8 +4,8 @@ import os
 import tempfile
 import unittest
 
+import tifffile
 import numpy as np
-import skimage.io
 
 import slicedimage
 from slicedimage._dimensions import DimensionNames
@@ -62,7 +62,8 @@ class TestFormats(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir:
             # write the tiff file
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
-            skimage.io.imsave(os.path.join(tempdir, "tile.tiff"), data, plugin="tifffile")
+            with tifffile.TiffWriter(os.path.join(tempdir, "tile.tiff")) as tiff:
+                tiff.save(data)
 
             # TODO: (ttung) We should really be producing a tileset programmatically and writing it
             # disk.  However, our current write path only produces numpy output files.

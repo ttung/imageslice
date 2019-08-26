@@ -5,8 +5,8 @@ import os
 import tempfile
 import unittest
 
+import tifffile
 import numpy as np
-import skimage.io
 
 import slicedimage
 from slicedimage import ImageFormat
@@ -133,7 +133,8 @@ class TestWrite(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir:
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
             file_path = os.path.join(tempdir, "tile.tiff")
-            skimage.io.imsave(file_path, data, plugin="tifffile")
+            with tifffile.TiffWriter(file_path) as tiff:
+                tiff.save(data)
             with open(file_path, "rb") as fh:
                 checksum = hashlib.sha256(fh.read()).hexdigest()
 
