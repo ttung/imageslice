@@ -109,6 +109,8 @@ class TestCachingBackend(unittest.TestCase):
                 self.assertEqual(cm.read(), data)
 
     def test_reentrant(self):
+        if os.name == "nt":
+            self.skipTest("Cannot run reentrant test on Windows")
         with self._test_checksum_setup(self.tempdir.name) as setupdata:
             filename, data, expected_checksum = setupdata
 
