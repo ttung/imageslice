@@ -52,7 +52,7 @@ class TestHttpBackend(unittest.TestCase):
         self.http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=self.port))
 
     def tearDown(self):
-        for context in self.contexts:
+        for context in reversed(self.contexts):
             context.__exit__(*sys.exc_info())
 
     def test_checksum_good(self):

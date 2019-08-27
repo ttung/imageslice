@@ -56,7 +56,7 @@ class TestCachingBackend(unittest.TestCase):
         self.caching_backend = CachingBackend(self.cachedir.name, self.http_backend)
 
     def tearDown(self):
-        for context in self.contexts:
+        for context in reversed(self.contexts):
             context.__exit__(*sys.exc_info())
 
     def test_checksum_good(self):
