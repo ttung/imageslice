@@ -43,13 +43,13 @@ class TestHttpBackend(unittest.TestCase):
         end = time.time() + timeout_seconds
         while True:
             try:
-                requests.get("http://0.0.0.0:{port}".format(port=self.port))
+                requests.get("http://127.0.0.1:{port}".format(port=self.port))
                 break
             except requests.ConnectionError:
                 if time.time() > end:
                     raise
 
-        self.http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=self.port))
+        self.http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=self.port))
 
     def tearDown(self):
         for context in reversed(self.contexts):
@@ -110,7 +110,7 @@ class TestHttpBackend(unittest.TestCase):
         Verifies that we raise an exception when we fail to find a file.
         """
         with self.assertRaises(HTTPError):
-            backend = HttpBackend("http://0.0.0.0:{port}".format(port=self.port))
+            backend = HttpBackend("http://127.0.0.1:{port}".format(port=self.port))
             with self.assertRaises(ChecksumValidationError):
                 with backend.read_contextmanager("tileset.json") as cm:
                     cm.read()

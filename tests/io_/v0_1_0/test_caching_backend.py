@@ -43,7 +43,7 @@ class TestCachingBackend(unittest.TestCase):
         end = time.time() + timeout_seconds
         while True:
             try:
-                requests.get("http://0.0.0.0:{port}".format(port=self.port))
+                requests.get("http://127.0.0.1:{port}".format(port=self.port))
                 break
             except requests.ConnectionError:
                 if time.time() > end:
@@ -52,7 +52,7 @@ class TestCachingBackend(unittest.TestCase):
         self.cachedir = tempfile.TemporaryDirectory()
         self.contexts.append(self.cachedir)
 
-        self.http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=self.port))
+        self.http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=self.port))
         self.caching_backend = CachingBackend(self.cachedir.name, self.http_backend)
 
     def tearDown(self):

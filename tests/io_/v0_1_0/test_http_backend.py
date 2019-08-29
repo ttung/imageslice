@@ -44,7 +44,7 @@ def http_server(timeout_seconds=5):
 
             while True:
                 try:
-                    requests.get("http://0.0.0.0:{port}".format(port=port))
+                    requests.get("http://127.0.0.1:{port}".format(port=port))
                     break
                 except requests.ConnectionError:
                     if time.time() > end:
@@ -55,7 +55,7 @@ def http_server(timeout_seconds=5):
 
 def test_checksum_good(http_server):
     tempdir, port = http_server
-    http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=port))
+    http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=port))
     with _test_checksum_setup(tempdir) as setupdata:
         filename, data, expected_checksum = setupdata
 
@@ -65,7 +65,7 @@ def test_checksum_good(http_server):
 
 def test_checksum_bad(http_server):
     tempdir, port = http_server
-    http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=port))
+    http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=port))
     with _test_checksum_setup(tempdir) as setupdata:
         filename, data, expected_checksum = setupdata
 
@@ -79,7 +79,7 @@ def test_checksum_bad(http_server):
 
 def test_reentrant(http_server):
     tempdir, port = http_server
-    http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=port))
+    http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=port))
     with _test_checksum_setup(tempdir) as setupdata:
         filename, data, expected_checksum = setupdata
 
@@ -117,7 +117,7 @@ def test_error(http_server):
     Verifies that we raise an exception when we fail to find a file.
     """
     tempdir, port = http_server
-    http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=port))
+    http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=port))
     with pytest.raises(HTTPError):
         with pytest.raises(ChecksumValidationError):
             with http_backend.read_contextmanager("tileset.json") as cm:
@@ -134,7 +134,7 @@ def test_retry(monkeypatch, http_server):
     file.
     """
     tempdir, port = http_server
-    http_backend = HttpBackend("http://0.0.0.0:{port}".format(port=port))
+    http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=port))
 
     def sleep_and_make_file():
         time.sleep(5.0)
