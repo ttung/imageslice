@@ -1,7 +1,6 @@
 import contextlib
 import hashlib
 import os
-import sys
 import tempfile
 import threading
 import time
@@ -24,19 +23,14 @@ def http_server(timeout_seconds=5):
 
         port = unused_tcp_port()
 
-        if sys.version_info[0] == 2:
-            module = "SimpleHTTPServer"
-        elif sys.version_info[0] == 3:
-            module = "http.server"
-        else:
-            raise Exception("unknown python version")
-
         with ContextualChildProcess(
                 [
                     "python",
                     "-m",
-                    module,
+                    "http.server",
                     str(port),
+                    "--bind",
+                    "127.0.0.1",
                 ],
                 cwd=tempdir,
         ):

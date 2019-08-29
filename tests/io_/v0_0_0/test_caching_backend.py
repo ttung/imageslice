@@ -23,19 +23,14 @@ class TestCachingBackend(unittest.TestCase):
         self.contexts.append(self.tempdir)
         self.port = unused_tcp_port()
 
-        if sys.version_info[0] == 2:
-            module = "SimpleHTTPServer"
-        elif sys.version_info[0] == 3:
-            module = "http.server"
-        else:
-            raise Exception("unknown python version")
-
         self.contexts.append(ContextualChildProcess(
             [
                 "python",
                 "-m",
-                module,
+                "http.server",
                 str(self.port),
+                "--bind",
+                "127.0.0.1",
             ],
             cwd=self.tempdir.name,
         ).__enter__())
