@@ -2,13 +2,7 @@ import contextlib
 import socket
 
 from tests.utils.contextchild import ContextualChildProcess
-
-
-__all__ = [
-    'ContextualChildProcess',
-    'unused_tcp_port',
-    'build_skeleton_manifest'
-]
+from tests.utils.contextualcachingbackend import ContextualCachingBackend
 
 
 def unused_tcp_port():

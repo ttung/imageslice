@@ -8,8 +8,9 @@ import unittest
 
 import requests
 
-from slicedimage.backends import ChecksumValidationError, HttpBackend, CachingBackend
+from slicedimage.backends import ChecksumValidationError, HttpBackend
 from tests.utils import (
+    ContextualCachingBackend,
     ContextualChildProcess,
     unused_tcp_port,
 )
@@ -52,7 +53,9 @@ class TestCachingBackend(unittest.TestCase):
         self.contexts.append(self.cachedir)
 
         self.http_backend = HttpBackend("http://127.0.0.1:{port}".format(port=self.port))
-        self.caching_backend = CachingBackend(self.cachedir.name, self.http_backend)
+        caching_context = ContextualCachingBackend(self.cachedir.name, self.http_backend)
+        self.caching_backend = caching_context.__enter__()
+        self.contexts.append(caching_context)
 
     def tearDown(self):
         for context in reversed(self.contexts):
