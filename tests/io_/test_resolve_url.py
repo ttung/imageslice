@@ -28,9 +28,22 @@ class TestResolvePathOrUrl(unittest.TestCase):
 
     def test_local_path_with_spaces(self):
         with tempfile.TemporaryDirectory(prefix="c d") as td:
-            with tempfile.NamedTemporaryFile(dir=td, prefix="a b") as tfn:
-                abspath = Path(tfn.name).resolve()
-                backend, name, baseurl = resolve_path_or_url(fspath(abspath))
+            with tempfile.NamedTemporaryFile(dir=td, prefix="a b", delete=False) as tfn:
+                pass
+            abspath = Path(tfn.name).resolve()
+            backend, name, baseurl = resolve_path_or_url(fspath(abspath))
+            self.assertEqual(name, abspath.name)
+            self.assertTrue(isinstance(backend, DiskBackend))
+            self.assertEqual(fspath(abspath.parent), backend._basedir)
+            self.assertEqual(abspath.parent.as_uri(), baseurl)
+
+            with backend.read_contextmanager(name) as rcm:
+                rcm.read()
+
+            cwd = os.getcwd()
+            try:
+                os.chdir(fspath(abspath.parent))
+                backend, name, baseurl = resolve_path_or_url(abspath.name)
                 self.assertEqual(name, abspath.name)
                 self.assertTrue(isinstance(backend, DiskBackend))
                 self.assertEqual(fspath(abspath.parent), backend._basedir)
@@ -38,20 +51,8 @@ class TestResolvePathOrUrl(unittest.TestCase):
 
                 with backend.read_contextmanager(name) as rcm:
                     rcm.read()
-
-                cwd = os.getcwd()
-                try:
-                    os.chdir(fspath(abspath.parent))
-                    backend, name, baseurl = resolve_path_or_url(abspath.name)
-                    self.assertEqual(name, abspath.name)
-                    self.assertTrue(isinstance(backend, DiskBackend))
-                    self.assertEqual(fspath(abspath.parent), backend._basedir)
-                    self.assertEqual(abspath.parent.as_uri(), baseurl)
-
-                    with backend.read_contextmanager(name) as rcm:
-                        rcm.read()
-                finally:
-                    os.chdir(cwd)
+            finally:
+                os.chdir(cwd)
 
     def test_invalid_local_path(self):
         with self.assertRaises(ValueError):

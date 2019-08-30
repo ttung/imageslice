@@ -99,11 +99,10 @@ def _test_checksum_setup(tempdir):
 
     expected_checksum = hashlib.sha256(data).hexdigest()
 
-    with tempfile.NamedTemporaryFile(dir=tempdir) as tfh:
+    with tempfile.NamedTemporaryFile(dir=tempdir, delete=False) as tfh:
         tfh.write(data)
-        tfh.flush()
 
-        yield os.path.basename(tfh.name), data, expected_checksum
+    yield os.path.basename(tfh.name), data, expected_checksum
 
 
 def test_error(http_server):
