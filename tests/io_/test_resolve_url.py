@@ -12,17 +12,17 @@ from slicedimage.url.resolve import resolve_path_or_url, resolve_url
 class TestResolvePathOrUrl(unittest.TestCase):
     def test_valid_local_path(self):
         with tempfile.NamedTemporaryFile() as tfn:
-            abspath = os.path.realpath(tfn.name)
-            _, name, baseurl = resolve_path_or_url(abspath)
-            self.assertEqual(name, os.path.basename(abspath))
-            self.assertEqual("file://{}".format(os.path.dirname(abspath)), baseurl)
+            abspath = Path(tfn.name).resolve()
+            _, name, baseurl = resolve_path_or_url(fspath(abspath))
+            self.assertEqual(name, abspath.name)
+            self.assertEqual(abspath.parent.as_uri(), baseurl)
 
             cwd = os.getcwd()
             try:
-                os.chdir(os.path.dirname(abspath))
-                _, name, baseurl = resolve_path_or_url(os.path.basename(abspath))
-                self.assertEqual(name, os.path.basename(abspath))
-                self.assertEqual("file://{}".format(os.path.dirname(abspath)), baseurl)
+                os.chdir(fspath(abspath.parent))
+                _, name, baseurl = resolve_path_or_url(abspath.name)
+                self.assertEqual(name, abspath.name)
+                self.assertEqual(abspath.parent.as_uri(), baseurl)
             finally:
                 os.chdir(cwd)
 

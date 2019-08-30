@@ -3,15 +3,17 @@ import json
 import os
 import tempfile
 import unittest
+from pathlib import Path
 
 import tifffile
 import numpy as np
+from slicedimage._compat import fspath
 
 import slicedimage
 from slicedimage._dimensions import DimensionNames
 from tests.utils import build_skeleton_manifest
 
-baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
+baseurl = Path(__file__).parent.resolve().as_uri()
 
 
 class TestReader(unittest.TestCase):
@@ -60,6 +62,7 @@ class TestFormats(unittest.TestCase):
         Generate a tileset consisting of a single TIFF tile, and then read it.
         """
         with tempfile.TemporaryDirectory() as tempdir:
+            tempdir_path = Path(tempdir)
             # write the tiff file
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
             with tifffile.TiffWriter(os.path.join(tempdir, "tile.tiff")) as tiff:
@@ -88,13 +91,10 @@ class TestFormats(unittest.TestCase):
                     "format": "tiff",
                 },
             )
-            with open(os.path.join(tempdir, "tileset.json"), "w") as fh:
+            with open(fspath(tempdir_path / "tileset.json"), "w") as fh:
                 fh.write(json.dumps(manifest))
 
-            result = slicedimage.Reader.parse_doc(
-                "tileset.json",
-                "file://{}".format(tempdir),
-            )
+            result = slicedimage.Reader.parse_doc("tileset.json", tempdir_path.as_uri())
 
             self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
 
@@ -122,16 +122,14 @@ class TestFormats(unittest.TestCase):
         image.add_tile(tile)
 
         with tempfile.TemporaryDirectory() as tempdir:
-            partition_path = os.path.join(tempdir, "tileset.json")
+            tempdir_path = Path(tempdir)
+            tileset_path = tempdir_path / "tileset.json"
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                image, "file://{}".format(partition_path))
-            with open(partition_path, "w") as fh:
+                image, (tempdir_path / "tileset.json").as_uri())
+            with open(fspath(tileset_path), "w") as fh:
                 json.dump(partition_doc, fh)
 
-            result = slicedimage.Reader.parse_doc(
-                "tileset.json",
-                "file://{}".format(tempdir),
-            )
+            result = slicedimage.Reader.parse_doc("tileset.json", tempdir_path.as_uri())
 
             self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, tile.numpy_array))
 

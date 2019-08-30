@@ -19,7 +19,7 @@ from tests.utils import (
 
 @pytest.fixture(scope="module")
 def http_server(timeout_seconds=5):
-    with tempfile.  TemporaryDirectory() as tempdir:
+    with tempfile.TemporaryDirectory() as tempdir:
 
         port = unused_tcp_port()
 

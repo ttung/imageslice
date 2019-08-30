@@ -1,9 +1,9 @@
 import codecs
 import json
-import os
 import tempfile
 import unittest
 import warnings
+from pathlib import Path
 
 import numpy as np
 
@@ -11,7 +11,7 @@ import slicedimage
 from slicedimage._dimensions import DimensionNames
 from slicedimage.io._keys import TileKeys, TileSetKeys
 
-baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
+baseurl = Path(__file__).parent.resolve().as_uri()
 
 
 class TestMissingShape(unittest.TestCase):
@@ -39,8 +39,9 @@ class TestMissingShape(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_file_path = Path(partition_file.name)
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                image, "file://{}".format(partition_file.name))
+                image, partition_file_path.as_uri())
 
             # remove the shape information from the tiles.
             for tile in partition_doc[TileSetKeys.TILES]:
@@ -50,10 +51,8 @@ class TestMissingShape(unittest.TestCase):
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
 
-            basename = os.path.basename(partition_file.name)
-            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
-
-            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+            loaded = slicedimage.Reader.parse_doc(
+                partition_file_path.name, partition_file_path.parent.as_uri())
 
             for hyb in range(2):
                 for ch in range(2):

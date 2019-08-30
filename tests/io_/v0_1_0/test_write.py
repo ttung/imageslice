@@ -4,16 +4,18 @@ import json
 import os
 import tempfile
 import unittest
+from pathlib import Path
 
 import tifffile
 import numpy as np
+from slicedimage._compat import fspath
 
 import slicedimage
 from slicedimage import ImageFormat
 from slicedimage._dimensions import DimensionNames
 from tests.utils import build_skeleton_manifest
 
-baseurl = "file://{}".format(os.path.abspath(os.path.dirname(__file__)))
+baseurl = Path(__file__).parent.resolve().as_uri()
 
 
 class TestWrite(unittest.TestCase):
@@ -42,16 +44,15 @@ class TestWrite(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_file_path = Path(partition_file.name)
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                image, "file://{}".format(partition_file.name))
+                image, partition_file_path.as_uri())
             writer = codecs.getwriter("utf-8")
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
 
-            basename = os.path.basename(partition_file.name)
-            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
-
-            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+            loaded = slicedimage.Reader.parse_doc(
+                partition_file_path.name, partition_file_path.parent.as_uri())
 
             for hyb in range(2):
                 for ch in range(2):
@@ -96,16 +97,15 @@ class TestWrite(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_file_path = Path(partition_file.name)
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                collection, "file://{}".format(partition_file.name))
+                collection, partition_file_path.as_uri())
             writer = codecs.getwriter("utf-8")
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
 
-            basename = os.path.basename(partition_file.name)
-            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
-
-            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+            loaded = slicedimage.Reader.parse_doc(
+                partition_file_path.name, partition_file_path.parent.as_uri())
 
             for hyb in range(2):
                 for ch in range(2):
@@ -131,6 +131,7 @@ class TestWrite(unittest.TestCase):
         """
         # write the tiff file
         with tempfile.TemporaryDirectory() as tempdir:
+            tempdir_path = Path(tempdir)
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
             file_path = os.path.join(tempdir, "tile.tiff")
             with tifffile.TiffWriter(file_path) as tiff:
@@ -160,29 +161,28 @@ class TestWrite(unittest.TestCase):
                     "sha256": checksum,
                 },
             )
-            with open(os.path.join(tempdir, "tileset.json"), "w") as fh:
+            with open(fspath(tempdir_path / "tileset.json"), "w") as fh:
                 fh.write(json.dumps(manifest))
 
             image = slicedimage.Reader.parse_doc(
                 "tileset.json",
-                "file://{}".format(tempdir),
+                tempdir_path.as_uri(),
                 {"cache": {"size_limit": 0}},  # disabled
             )
 
             with tempfile.TemporaryDirectory() as output_tempdir, \
                     tempfile.NamedTemporaryFile(
                         suffix=".json", dir=output_tempdir) as partition_file:
+                partition_file_path = Path(partition_file.name)
                 partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                    image, "file://{}".format(partition_file.name))
+                    image, partition_file_path.as_uri())
 
                 writer = codecs.getwriter("utf-8")
                 json.dump(partition_doc, writer(partition_file))
                 partition_file.flush()
 
-                basename = os.path.basename(partition_file.name)
-                baseurl = "file://{}".format(os.path.dirname(partition_file.name))
-
-                loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+                loaded = slicedimage.Reader.parse_doc(
+                    partition_file_path.name, partition_file_path.parent.as_uri())
 
                 loaded.tiles()[0].numpy_array
 
@@ -211,17 +211,17 @@ class TestWrite(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_file_path = Path(partition_file.name)
             # create the tileset and save it.
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                image, "file://{}".format(partition_file.name), tile_format=ImageFormat.TIFF)
+                image, partition_file_path.as_uri(), tile_format=ImageFormat.TIFF)
             writer = codecs.getwriter("utf-8")
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
 
             # construct a URL to the tileset we wrote, and load the tileset.
-            basename = os.path.basename(partition_file.name)
-            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
-            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+            loaded = slicedimage.Reader.parse_doc(
+                partition_file_path.name, partition_file_path.parent.as_uri())
 
             # compare the tiles we loaded to the tiles we set up.
             for hyb in range(2):
@@ -282,8 +282,9 @@ class TestWrite(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tempdir, \
                 tempfile.NamedTemporaryFile(suffix=".json", dir=tempdir) as partition_file:
+            partition_file_path = Path(partition_file.name)
             partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
-                collection, "file://{}".format(partition_file.name),
+                collection, partition_file_path.as_uri(),
                 partition_path_generator=partition_path_generator,
                 tile_opener=tile_opener,
             )
@@ -291,10 +292,8 @@ class TestWrite(unittest.TestCase):
             json.dump(partition_doc, writer(partition_file))
             partition_file.flush()
 
-            basename = os.path.basename(partition_file.name)
-            baseurl = "file://{}".format(os.path.dirname(partition_file.name))
-
-            loaded = slicedimage.Reader.parse_doc(basename, baseurl)
+            loaded = slicedimage.Reader.parse_doc(
+                partition_file_path.name, partition_file_path.parent.as_uri())
 
             for hyb in range(2):
                 for ch in range(2):
