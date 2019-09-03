@@ -22,7 +22,6 @@ from packaging import version
 
 from slicedimage.url.resolve import resolve_url
 from slicedimage._collection import Collection
-from slicedimage._compat import fspath
 from slicedimage._formats import ImageFormat
 from slicedimage._tile import Tile
 from slicedimage._tileset import TileSet
@@ -131,9 +130,7 @@ class Writer:
         else:
             kwargs['writer_contract'] = WriterContract()
 
-        url = urllib.parse.urlunparse(("file", "", fspath(path), "", "", ""))
-
-        return Writer.write_to_url(partition, url, pretty, version_class, *args, **kwargs)
+        return Writer.write_to_url(partition, path.as_uri(), pretty, version_class, *args, **kwargs)
 
     @staticmethod
     def write_to_url(
