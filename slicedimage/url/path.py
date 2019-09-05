@@ -1,3 +1,4 @@
+import os
 import pathlib
 import posixpath
 import urllib.parse
@@ -104,3 +105,17 @@ def calculate_relative_url(baseurl: str, name_or_url: str) -> str:
         result = result + "#" + absolute_url_parsed.fragment
 
     return result
+
+
+def get_path_from_parsed_file_url(parsed_file_url: urllib.parse.ParseResult) -> pathlib.Path:
+    """If parsed_file_url is the result of parsing a URL using urllib.parse.unparse, and the URL is
+    a "file:" URL, then extract the local filesystem path.  Handles idiosyncrasies such as pathlib
+    and Windows paths.
+    """
+    assert parsed_file_url.scheme == "file"
+    if os.name == "nt":
+        # pathlib can parse c:/windows/xxx, but not /c:/windows/xxx.  however, url paths always
+        # start with a /
+        return pathlib.Path(urllib.parse.unquote(parsed_file_url.path[1:]))
+    else:
+        return pathlib.Path(urllib.parse.unquote(parsed_file_url.path))

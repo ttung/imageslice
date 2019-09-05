@@ -20,6 +20,7 @@ from typing import (
 
 from packaging import version
 
+from slicedimage.url.path import get_path_from_parsed_file_url
 from slicedimage.url.resolve import resolve_url
 from slicedimage._collection import Collection
 from slicedimage._formats import ImageFormat
@@ -283,8 +284,7 @@ class CompatibilityWriterContract(WriterContract):
         if self.partition_path_generator is None:
             return super().partition_url_generator(parent_partition_url, partition_name)
         parent_parsed_url = urllib.parse.urlparse(parent_partition_url)
-        assert parent_parsed_url.scheme == "file"
-        parent_path = PurePosixPath(parent_parsed_url.path)
+        parent_path = get_path_from_parsed_file_url(parent_parsed_url)
         partition_path = self.partition_path_generator(parent_path, partition_name)
         partition_parsed_url = parent_parsed_url._replace(path=str(partition_path))
         return urllib.parse.urlunparse(partition_parsed_url)
@@ -310,8 +310,7 @@ class CompatibilityWriterContract(WriterContract):
         if self.tile_opener is None:
             return super().tile_url_generator(tileset_url, tile, ext)
         tileset_parsed_url = urllib.parse.urlparse(tileset_url)
-        assert tileset_parsed_url.scheme == "file"
-        tileset_path = PurePosixPath(tileset_parsed_url.path)
+        tileset_path = get_path_from_parsed_file_url(tileset_parsed_url)
         with self.tile_opener(tileset_path, tile, ext) as open_fh:
             tile_path = open_fh.name
 

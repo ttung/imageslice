@@ -5,7 +5,7 @@ import pathlib
 
 from slicedimage._compat import fspath
 from slicedimage.backends import CachingBackend, DiskBackend, HttpBackend, S3Backend, SIZE_LIMIT
-from .path import get_absolute_url
+from .path import get_absolute_url, get_path_from_parsed_file_url
 
 
 def infer_backend(baseurl, backend_config=None):
@@ -26,12 +26,7 @@ def infer_backend(baseurl, backend_config=None):
     parsed = urllib.parse.urlparse(baseurl)
 
     if parsed.scheme == "file":
-        if os.name == "nt":
-            # pathlib can parse c:/windows/xxx, but not /c:/windows/xxx.  however, url paths always
-            # start with a /
-            local_path = pathlib.Path(urllib.parse.unquote(parsed.path[1:]))
-        else:
-            local_path = pathlib.Path(urllib.parse.unquote(parsed.path))
+        local_path = get_path_from_parsed_file_url(parsed)
         return DiskBackend(fspath(local_path))
 
     if parsed.scheme in ("http", "https"):
