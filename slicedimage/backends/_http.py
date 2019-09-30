@@ -41,4 +41,7 @@ class _UrlContextManager:
         return self.handle.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return self.handle.__exit__(exc_type, exc_val, exc_tb)
+        try:
+            return self.handle.__exit__(exc_type, exc_val, exc_tb)
+        finally:
+            self.handle = None

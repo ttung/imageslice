@@ -27,4 +27,7 @@ class _FileLikeContextManager:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.handle is not None:
-            return self.handle.__exit__(exc_type, exc_val, exc_tb)
+            try:
+                return self.handle.__exit__(exc_type, exc_val, exc_tb)
+            finally:
+                self.handle = None

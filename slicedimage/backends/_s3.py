@@ -56,4 +56,7 @@ class _S3ContextManager:
         return self.buffer.__enter__()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return self.buffer.__exit__(exc_type, exc_val, exc_tb)
+        try:
+            return self.buffer.__exit__(exc_type, exc_val, exc_tb)
+        finally:
+            self.buffer = None

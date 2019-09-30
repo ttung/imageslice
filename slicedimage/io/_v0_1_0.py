@@ -80,17 +80,8 @@ class v0_1_0:
                         extras=tile_doc.get(TileKeys.EXTRAS, None),
                     )
 
-                    def future_maker(_source_fh_contextmanager, _tile_format):
-                        """Produces a future that reads from a file and decodes according to the
-                        specified file format."""
-                        def _actual_future():
-                            with _source_fh_contextmanager as fh:
-                                return _tile_format.reader_func(fh)
-
-                        return _actual_future
-
                     tile.set_numpy_array_future(
-                        future_maker(
+                        SourceFileFuture(
                             backend.read_contextmanager(name, checksum_sha256=checksum),
                             tile_format))
                     result.add_tile(tile)
@@ -164,3 +155,15 @@ class v0_1_0:
                     json_doc[TileSetKeys.TILES].append(tiledoc)
 
                 return json_doc
+
+
+class SourceFileFuture:
+    """Produces a future that reads from a file and decodes according to the
+    specified file format."""
+    def __init__(self, source_fh_contextmanager, tile_format: ImageFormat):
+        self.source_fh_contextmanager = source_fh_contextmanager
+        self.tile_format = tile_format
+
+    def __call__(self, *args, **kwargs):
+        with self.source_fh_contextmanager as fh:
+            return self.tile_format.reader_func(fh)
