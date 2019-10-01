@@ -1,3 +1,4 @@
+from ._dimensions import DimensionNames
 from ._formats import ImageFormat
 from ._collection import Collection
 from ._tile import Tile
