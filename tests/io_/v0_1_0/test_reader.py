@@ -5,6 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import imageio
 import tifffile
 import numpy as np
 from slicedimage._compat import fspath
@@ -89,6 +90,46 @@ class TestFormats(unittest.TestCase):
                     },
                     "file": "tile.tiff",
                     "format": "tiff",
+                },
+            )
+            with open(fspath(tempdir_path / "tileset.json"), "w") as fh:
+                fh.write(json.dumps(manifest))
+
+            result = slicedimage.Reader.parse_doc("tileset.json", tempdir_path.as_uri())
+
+            self.assertTrue(np.array_equal(list(result.tiles())[0].numpy_array, data))
+
+    def test_png(self):
+        """
+        Generate a tileset consisting of a single PNG tile, and then read it.
+        """
+        with tempfile.TemporaryDirectory() as tempdir:
+            tempdir_path = Path(tempdir)
+            # write the tiff file
+            data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
+            imageio.imwrite(os.path.join(tempdir, "tile.png"), data)
+
+            # TODO: (ttung) We should really be producing a tileset programmatically and writing it
+            # disk.  However, our current write path only produces numpy output files.
+            manifest = build_skeleton_manifest()
+            manifest['tiles'].append(
+                {
+                    "coordinates": {
+                        DimensionNames.X.value: [
+                            0.0,
+                            0.0001,
+                        ],
+                        DimensionNames.Y.value: [
+                            0.0,
+                            0.0001,
+                        ]
+                    },
+                    "indices": {
+                        "hyb": 0,
+                        "ch": 0,
+                    },
+                    "file": "tile.png",
+                    "format": "PNG",
                 },
             )
             with open(fspath(tempdir_path / "tileset.json"), "w") as fh:
