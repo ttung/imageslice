@@ -6,3 +6,4 @@ pathlib;python_version<"3.0"
 numpy
 requests
 tifffile
+imageio

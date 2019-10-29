@@ -1,5 +1,6 @@
 import enum
 from pathlib import Path
+
 from ._compat import fspath
 
 
@@ -20,6 +21,13 @@ def tiff_reader():
             return tiff.asarray(maxworkers=1)
 
     return reader
+
+
+def png_reader():
+    from imageio import imread
+
+    return imread
+
 
 def numpy_reader():
     # lazy load numpy
@@ -43,6 +51,12 @@ def tiff_writer():
     return writer
 
 
+def png_writer():
+    from imageio import imwrite
+
+    return imwrite
+
+
 def numpy_writer():
     """
     Return a method that accepts (file, array) and saves it to the file.  File may be a file-like
@@ -63,6 +77,7 @@ class ImageFormat(enum.Enum):
     """
     TIFF = (tiff_reader, tiff_writer, "tiff", {"tif"})
     NUMPY = (numpy_reader, numpy_writer, "npy", None)
+    PNG = (png_reader, png_writer, "png", None)
 
     def __init__(
             self,
