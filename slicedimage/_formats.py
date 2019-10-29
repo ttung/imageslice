@@ -54,7 +54,10 @@ def tiff_writer():
 def png_writer():
     from imageio import imwrite
 
-    return imwrite
+    def writer(f, arr):
+        return imwrite(to_file_obj_or_str(f), arr, format='png')
+
+    return writer
 
 
 def numpy_writer():

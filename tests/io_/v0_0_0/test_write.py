@@ -238,6 +238,60 @@ class TestWrite(unittest.TestCase):
                     self.assertEqual(tiles[0].numpy_array.all(), expected.all())
                     self.assertIsNotNone(tiles[0].sha256)
 
+    def test_write_png(self):
+        image = slicedimage.TileSet(
+            dimensions=[DimensionNames.X, DimensionNames.Y, "ch", "hyb"],
+            shape={'ch': 2, 'hyb': 2},
+            default_tile_shape={DimensionNames.Y: 120, DimensionNames.X: 80},
+        )
+
+        for hyb in range(2):
+            for ch in range(2):
+                tile = slicedimage.Tile(
+                    coordinates={
+                        DimensionNames.X: (0.0, 0.01),
+                        DimensionNames.Y: (0.0, 0.01),
+                    },
+                    indices={
+                        'hyb': hyb,
+                        'ch': ch,
+                    },
+                )
+                tile.numpy_array = np.zeros((120, 80), dtype=np.uint32)
+                tile.numpy_array[hyb, ch] = 1
+                image.add_tile(tile)
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            with tempfile.NamedTemporaryFile(
+                    suffix=".json", dir=tempdir, delete=False) as partition_file:
+                # create the tileset and save it.
+                partition_file_path = Path(partition_file.name)
+                partition_doc = slicedimage.v0_0_0.Writer().generate_partition_document(
+                    image, partition_file_path.as_uri(), tile_format=ImageFormat.PNG)
+                writer = codecs.getwriter("utf-8")
+                json.dump(partition_doc, writer(partition_file))
+
+            # construct a URL to the tileset we wrote, and load the tileset.
+            loaded = slicedimage.Reader.parse_doc(
+                partition_file_path.name, partition_file_path.parent.as_uri())
+
+            # compare the tiles we loaded to the tiles we set up.
+            for hyb in range(2):
+                for ch in range(2):
+                    tiles = [_tile
+                             for _tile in loaded.tiles(
+                                 lambda tile: (
+                                     tile.indices['hyb'] == hyb
+                                     and tile.indices['ch'] == ch))]
+
+                    self.assertEqual(len(tiles), 1)
+
+                    expected = np.zeros((120, 80), dtype=np.uint32)
+                    expected[hyb, ch] = 1
+
+                    self.assertEqual(tiles[0].numpy_array.all(), expected.all())
+                    self.assertIsNotNone(tiles[0].sha256)
+
 
 if __name__ == "__main__":
     unittest.main()
