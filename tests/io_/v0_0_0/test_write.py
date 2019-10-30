@@ -5,8 +5,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-import tifffile
 import numpy as np
+from imageio import imwrite
 from slicedimage._compat import fspath
 
 import slicedimage
@@ -133,8 +133,7 @@ class TestWrite(unittest.TestCase):
             tempdir_path = Path(tempdir)
             file_path = tempdir_path / "tile.tiff"
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
-            with tifffile.TiffWriter(fspath(file_path)) as tiff:
-                tiff.save(data)
+            imwrite(file_path, data, format="tiff")
             with open(fspath(file_path), "rb") as fh:
                 checksum = hashlib.sha256(fh.read()).hexdigest()
 
