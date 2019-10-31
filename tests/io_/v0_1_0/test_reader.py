@@ -6,7 +6,6 @@ import unittest
 from pathlib import Path
 
 import imageio
-import tifffile
 import numpy as np
 from slicedimage._compat import fspath
 
@@ -66,8 +65,7 @@ class TestFormats(unittest.TestCase):
             tempdir_path = Path(tempdir)
             # write the tiff file
             data = np.random.randint(0, 65535, size=(120, 80), dtype=np.uint16)
-            with tifffile.TiffWriter(os.path.join(tempdir, "tile.tiff")) as tiff:
-                tiff.save(data)
+            imageio.imwrite(os.path.join(tempdir, "tile.tiff"), data, format="tiff")
 
             # TODO: (ttung) We should really be producing a tileset programmatically and writing it
             # disk.  However, our current write path only produces numpy output files.
