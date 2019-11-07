@@ -6,6 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import magic
 import numpy as np
 from imageio import imwrite
 from slicedimage._compat import fspath
@@ -223,6 +224,14 @@ class TestWrite(unittest.TestCase):
             loaded = slicedimage.Reader.parse_doc(
                 partition_file_path.name, partition_file_path.parent.as_uri())
 
+            # verify that we wrote some tiffs, and all the tiffs we wrote actually identify as
+            # tiffs.
+            tifffiles = list(Path(tempdir).glob("*.tiff"))
+            assert len(tifffiles) > 0
+            for tifffile in tifffiles:
+                filetype = magic.from_file(fspath(tifffile))
+                assert filetype.lower().startswith("tiff")
+
             # compare the tiles we loaded to the tiles we set up.
             for hyb in range(2):
                 for ch in range(2):
@@ -277,6 +286,13 @@ class TestWrite(unittest.TestCase):
             # construct a URL to the tileset we wrote, and load the tileset.
             loaded = slicedimage.Reader.parse_doc(
                 partition_file_path.name, partition_file_path.parent.as_uri())
+
+            # verify that we wrote some pngs, and all the pngs we wrote actually identify as pngs.
+            pngfiles = list(Path(tempdir).glob("*.png"))
+            assert len(pngfiles) > 0
+            for pngfile in pngfiles:
+                filetype = magic.from_file(fspath(pngfile))
+                assert filetype.lower().startswith("png")
 
             # compare the tiles we loaded to the tiles we set up.
             for hyb in range(2):
