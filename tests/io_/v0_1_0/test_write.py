@@ -2,11 +2,11 @@ import codecs
 import hashlib
 import json
 import os
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-import magic
 import numpy as np
 from imageio import imwrite
 from slicedimage._compat import fspath
@@ -15,6 +15,11 @@ import slicedimage
 from slicedimage import ImageFormat
 from slicedimage._dimensions import DimensionNames
 from tests.utils import build_skeleton_manifest
+
+if sys.platform == "win32":
+    from winmagic import magic
+else:
+    import magic
 
 baseurl = Path(__file__).parent.resolve().as_uri()
 

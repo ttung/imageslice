@@ -15,6 +15,7 @@ matrix:
         - choco install python
         - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
         - python -m pip install --upgrade pip wheel
+        - python -m pip install python-magic-win64
 install:
   - pip install -r requirements-dev.txt
   - pip install -e .
