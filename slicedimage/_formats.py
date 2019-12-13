@@ -2,10 +2,10 @@ import enum
 
 
 def tiff_reader():
-    from imageio import imread
+    from imageio import volread
 
     def reader(f):
-        return imread(f, format="tiff")
+        return volread(f, format="tiff")
 
     return reader
 
@@ -31,10 +31,15 @@ def tiff_writer():
     Return a method that accepts (file, array) and saves it to the file.  File may be a file-like
     object, str, or pathlib.Path.
     """
-    from imageio import imwrite
+    from imageio import imwrite, volwrite
 
     def writer(f, arr):
-        imwrite(f, arr, format="tiff")
+        if arr.ndim == 2:
+            imwrite(f, arr, format="tiff")
+        elif arr.ndim == 3:
+            volwrite(f, arr, format="tiff")
+        else:
+            raise ValueError("cannot handle {}-dimensional data.".format(arr.ndim))
 
     return writer
 
@@ -43,7 +48,10 @@ def png_writer():
     from imageio import imwrite
 
     def writer(f, arr):
-        return imwrite(f, arr, format="png")
+        if arr.ndim == 2:
+            imwrite(f, arr, format="png")
+        else:
+            raise ValueError("cannot handle {}-dimensional data.".format(arr.ndim))
 
     return writer
 
