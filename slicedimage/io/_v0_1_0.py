@@ -26,7 +26,7 @@ class v0_1_0:
 
     class Reader(_base.Reader):
         @classmethod
-        def can_parse(cls, doc_version: str):
+        def can_parse(cls, doc_version: version.Version):
             return (
                 version.parse(v0_1_0.VERSION)
                 <= doc_version

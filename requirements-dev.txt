@@ -4,5 +4,5 @@ mypy
 pytest>=4.4.0
 pytest-cov
 pytest-xdist
-python-magic
+python-magic <= 0.4.15
 -r requirements.txt

@@ -8,9 +8,6 @@ matrix:
     - os: windows
       language: sh
       before_install:
-        # this hackery is in here because of https://github.com/git-for-windows/git/issues/2291
-        - powershell mkdir "'C:\Program Files\Git\dev'"
-        - ln -s /proc/self/fd /dev/fd
         - choco install make
         - choco install python
         - export PATH="/c/Python38:/c/Python38/Scripts:$PATH"
