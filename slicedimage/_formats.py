@@ -45,6 +45,10 @@ def tiff_writer():
 
 
 def png_writer():
+    """
+    Return a method that accepts (file, array) and saves it to the file.  File may be a file-like
+    object, str, or pathlib.Path.
+    """
     from imageio import imwrite
 
     def writer(f, arr):
